@@ -3,14 +3,16 @@
 @tailwind utilities;
 
 :root {
-  --background: 220 24% 94%;
-  --foreground: 222 28% 22%;
-  --primary: 221 72% 50%;
-  --secondary: 220 20% 90%;
-  --accent: 221 72% 50%;
-  --surface: 220 24% 94%;
-  --surface-deep: 220 19% 88%;
-  --ink-muted: 222 12% 48%;
+  --background: 210 40% 98%;
+  --foreground: 215 45% 18%;
+  --primary: 217 91% 60%;
+  --secondary: 210 40% 96%;
+  --accent: 174 83% 32%;
+  --surface: 0 0% 100%;
+  --surface-deep: 210 40% 96%;
+  --ink-muted: 215 16% 46%;
+  --navy: 215 57% 18%;
+  --slate-border: 214 32% 91%;
 }
 
 * {

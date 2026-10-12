@@ -9,7 +9,7 @@ import { TablePagination, TableToolbar } from '@/components/ui/data-table'
 type FormAset = Omit<MasterAset, 'id' | 'created_at' | 'updated_at'>
 const kosong: FormAset = { jenis_bmn: '', kode_barang: '', nup: '', nama_barang: '', merk: '', tipe: '', kondisi: '', umur_aset: null, intra_extra: '', status: 'Aktif', kode_register: '' }
 const batchSize = 100
-const aliases: Record<string, keyof FormAset> = { 'jenis bmn': 'jenis_bmn', 'kode barang': 'kode_barang', nup: 'nup', 'nama barang': 'nama_barang', merk: 'merk', tipe: 'tipe', kondisi: 'kondisi', 'umur aset': 'umur_aset', 'intra extra': 'intra_extra', 'intra / extra': 'intra_extra', 'instra extra': 'intra_extra', 'instra / extra': 'intra_extra', instra_extra: 'intra_extra', status: 'status', 'kode register': 'kode_register' }
+const aliases: Record<string, keyof FormAset> = { 'jenis bmn': 'jenis_bmn', 'kode barang': 'kode_barang', nup: 'nup', 'nama barang': 'nama_barang', merk: 'merk', tipe: 'tipe', kondisi: 'kondisi', 'umur aset': 'umur_aset', 'intra extra': 'intra_extra', status: 'status', 'kode register': 'kode_register' }
 const headerKunci = Object.keys(aliases)
 
 export default function AssetDashboard() {

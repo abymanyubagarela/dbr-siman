@@ -22,7 +22,7 @@ export default function RoomSelector({ onSelect, onStartSession, isLoading }: Pr
 
   const fetchRooms = async () => {
     try {
-      const { data, error } = await supabase.from('rooms').select('*').order('created_at', { ascending: false })
+      const { data, error } = await supabase.from('master_ruangan').select('*').order('created_at', { ascending: false })
       if (error) throw error
       setRooms(data || [])
     } catch (error) {

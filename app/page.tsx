@@ -58,8 +58,8 @@ export default function Home() {
       const workbook = read(await file.arrayBuffer(), { type: 'array' })
       const rows = utils.sheet_to_json<Record<string, unknown>>(workbook.Sheets[workbook.SheetNames[0]], { defval: '' })
       const normalized = rows.map((row) => Object.fromEntries(Object.entries(row).map(([key, value]) => [key.toLowerCase().trim(), String(value).trim()])))
-      const nameKey = Object.keys(normalized[0] ?? {}).find((key) => ['nama ruangan', 'nama', 'name'].includes(key))
-      const locationKey = Object.keys(normalized[0] ?? {}).find((key) => ['lokasi', 'location', 'gedung'].includes(key))
+      const nameKey = Object.keys(normalized[0] ?? {}).find((key) => ['nama ruangan', 'jenis ruang', 'luas'].includes(key))
+      const locationKey = Object.keys(normalized[0] ?? {}).find((key) => ['nama ruangan', 'jenis ruang', 'luas'].includes(key))
       if (!nameKey || !locationKey) return setImportReport('Gagal: header wajib “Nama Ruangan” dan “Lokasi” tidak ditemukan.')
       let success = 0, skipped = 0, failed = 0
       for (const row of normalized) {

@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Room Inventory System',
-  description: 'Scan and photograph room inventory with asset IDs',
+  title: 'SIMAN | Manajemen Ruangan',
+  description: 'Kelola data ruangan dan inventaris aset secara terpusat.',
 }
 
 export default function RootLayout({

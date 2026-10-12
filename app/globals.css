@@ -3,11 +3,45 @@
 @tailwind utilities;
 
 :root {
-  --background: 210 40% 98%;
-  --foreground: 222 47% 11%;
-  --primary: 221 83% 53%;
-  --secondary: 210 40% 96%;
-  --accent: 191 91% 36%;
+  --background: 220 24% 94%;
+  --foreground: 222 28% 22%;
+  --primary: 221 72% 50%;
+  --secondary: 220 20% 90%;
+  --accent: 221 72% 50%;
+  --surface: 220 24% 94%;
+  --surface-deep: 220 19% 88%;
+  --ink-muted: 222 12% 48%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::selection {
+  background: hsl(var(--primary) / 0.2);
+  color: hsl(var(--foreground));
+}
+
+.neu-surface {
+  background: hsl(var(--surface));
+  box-shadow: 12px 12px 24px hsl(220 18% 80% / 0.9), -12px -12px 24px hsl(0 0% 100% / 0.85);
+}
+
+.neu-inset {
+  background: hsl(var(--surface-deep) / 0.55);
+  box-shadow: inset 4px 4px 10px hsl(220 18% 80% / 0.85), inset -4px -4px 10px hsl(0 0% 100% / 0.75);
+}
+
+.neu-control {
+  border: 1px solid hsl(0 0% 100% / 0.55);
+  background: hsl(var(--surface));
+  box-shadow: 4px 4px 9px hsl(220 18% 80% / 0.75), -4px -4px 9px hsl(0 0% 100% / 0.8);
+  color: hsl(var(--foreground));
+}
+
+.neu-control:focus {
+  outline: 2px solid hsl(var(--primary) / 0.25);
+  outline-offset: 2px;
 }
 
 @keyframes glass-float {

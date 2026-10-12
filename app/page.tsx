@@ -44,13 +44,52 @@ export default function Home() {
     if (!form.nama_ruang.trim() || !form.jenis_ruang.trim()) return setError('Nama ruangan dan lokasi wajib diisi.')
     const payload = { nama_ruang: form.nama_ruang.trim(), jenis_ruang: form.jenis_ruang.trim() || null, luas: form.luas.trim() ? Number(form.luas) : null }
     if (Number.isNaN(payload.luas)) return setError('Luas ruangan harus berupa angka.')
-    const result = editing ? await supabase.from('master_ruangan').update(payload).eq('id', editing.id) : await supabase.from('master_ruangan').insert(payload)
-    if (result.error) setError(result.error.message); else { setShowForm(false); await loadRooms() }
+    const result = editing
+      ? await supabase
+          .from('master_ruangan')
+          .update({ ...payload, updated_at: new Date().toISOString() })
+          .eq('id', editing.id)
+          .select('id')
+          .maybeSingle()
+      : await supabase
+          .from('master_ruangan')
+          .insert(payload)
+          .select('id')
+          .maybeSingle()
+
+    if (result.error) {
+      setError(`Gagal ${editing ? 'mengubah' : 'menambahkan'} ruangan: ${result.error.message}`)
+      return
+    }
+    if (!result.data) {
+      setError('Perubahan tidak tersimpan. Data ruangan mungkin sudah berubah atau akses database tidak mengizinkan operasi ini.')
+      return
+    }
+    setError('')
+    setShowForm(false)
+    setEditing(null)
+    await loadRooms()
   }
   const removeRoom = async (room: Room) => {
     if (!window.confirm(`Hapus ruangan “${room.nama_ruang}”? Data sesi inventaris terkait dapat ikut terdampak.`)) return
-    const { error: dbError } = await supabase.from('master_ruangan').delete().('id', room.id)
-    if (dbError) setError(dbError.message); else await loadRooms()
+    const { data, error: dbError } = await supabase
+      .from('master_ruangan')
+      .delete()
+      .eq('id', room.id)
+      .select('id')
+      .maybeSingle()
+
+    if (dbError) {
+      setError(`Gagal menghapus ruangan: ${dbError.message}`)
+      return
+    }
+    if (!data) {
+      setError('Ruangan tidak terhapus. Data mungkin sudah dihapus atau akses database tidak mengizinkan operasi ini.')
+      return
+    }
+    setError('')
+    if (detail?.id === room.id) setDetail(null)
+    await loadRooms()
   }
   const importExcel = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]; if (!file) return

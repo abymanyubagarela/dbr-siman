@@ -10,7 +10,7 @@ interface Props {
 }
 
 export default function RoomSelector({ onSelect, onStartSession, isLoading }: Props) {
-  const [rooms, setRooms] = useState<Room[]>([])
+  const [rooms, setRooms] = useState<MasterRuangan[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [newRoomName, setNewRoomName] = useState('')
@@ -37,7 +37,7 @@ export default function RoomSelector({ onSelect, onStartSession, isLoading }: Pr
 
     try {
       const { data, error } = await supabase
-        .from('rooms')
+        .from('master_ruangan')
         .insert([{
             nama_ruang: newRoomName.trim(),
             jenis_ruang: null,

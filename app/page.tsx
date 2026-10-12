@@ -33,7 +33,7 @@ export default function Home() {
   }
   useEffect(() => { loadRooms() }, [])
 
-  const jenisOptions = useMemo(() => Array.from(new Set(rooms.map((room) => room.jenis_ruang).filter(Boolean))) as string[], [rooms])
+  const jenisOptions = useMemo(() => Array.from(new Set(rooms.map((room) => room.nama_ruang).filter(Boolean))) as string[], [rooms])
   const filtered = rooms.filter((room) => `${room.nama_ruang} ${room.jenis_ruang ?? ''}`.toLowerCase().includes(query.toLowerCase()) && (jenisRuang === 'Semua jenis' || room.jenis_ruang === jenisRuang))
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const visible = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)

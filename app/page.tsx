@@ -61,43 +61,65 @@ export default function Home() {
   Object.fromEntries(
     Object.entries(row).map(([key, value]) => [
       key.toLowerCase().trim().replace(/[_\s]+/g, ' '),
-      String(value).trim(),
+      String(value ?? '').trim(),
     ])
   )
 )
 
 const headers = Object.keys(normalized[0] ?? {})
+const findHeader = (names: string[]) => headers.find((header) => names.includes(header))
+const nameKey = findHeader(['nama ruangan', 'nama ruang', 'nama_ruang'])
+const jenisKey = findHeader(['jenis ruang', 'jenis ruangan', 'jenis_ruang'])
+const luasKey = findHeader(['luas', 'luas ruangan'])
 
-const nameKey = headers.find((key) =>
-  ['nama ruangan', 'nama ruang'].includes(key)
-)
-
-const jenisKey = headers.find((key) =>
-  ['jenis ruang'].includes(key)
-)
-
-const luasKey = headers.find((key) =>
-  ['luas'].includes(key)
-)
-
-// Periksa kolom satu per satu
 const missingColumns: string[] = []
-
 if (!nameKey) missingColumns.push('Nama Ruang')
 if (!jenisKey) missingColumns.push('Jenis Ruang')
 if (!luasKey) missingColumns.push('Luas')
-
 if (missingColumns.length > 0) {
-      setImportReport(
-        `Gagal: kolom ${missingColumns.join(', ')} tidak ditemukan. ` +
-        `Header yang terdeteksi: ${headers.join(', ') || 'tidak ada'}.`
-      )
-      return
-    }
-setImportReport(
-  `Impor selesai: ${success} berhasil, ${skipped} dilewati (duplikat), ${failed} gagal.`
-)
+  setImportReport(
+    `Gagal: kolom ${missingColumns.join(', ')} tidak ditemukan. ` +
+    `Header yang terdeteksi: ${headers.join(', ') || 'tidak ada'}.`
+  )
+  return
+}
 
+let success = 0
+let skipped = 0
+let failed = 0
+for (const row of normalized) {
+  const nama_ruang = row[nameKey!]?.trim()
+  const jenis_ruang = row[jenisKey!]?.trim()
+  const luasText = row[luasKey!]?.replace(',', '.').trim()
+  if (!nama_ruang || !jenis_ruang) {
+    failed += 1
+    continue
+  }
+  const luas = luasText ? Number(luasText) : null
+  if (luasText && (!Number.isFinite(luas) || luas < 0)) {
+    failed += 1
+    continue
+  }
+
+  const { data: duplicate } = await supabase
+    .from('master_ruangan')
+    .select('id')
+    .eq('nama_ruang', nama_ruang)
+    .eq('jenis_ruang', jenis_ruang)
+    .maybeSingle()
+  if (duplicate) {
+    skipped += 1
+    continue
+  }
+
+  const { error: insertError } = await supabase
+    .from('master_ruangan')
+    .insert({ nama_ruang, jenis_ruang, luas })
+  if (insertError) failed += 1
+  else success += 1
+}
+
+setImportReport(`Impor selesai: ${success} berhasil, ${skipped} dilewati (duplikat), ${failed} gagal.`)
 await loadRooms()
 
 } catch (error) {

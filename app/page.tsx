@@ -49,7 +49,7 @@ export default function Home() {
   }
   const removeRoom = async (room: Room) => {
     if (!window.confirm(`Hapus ruangan “${room.nama_ruang}”? Data sesi inventaris terkait dapat ikut terdampak.`)) return
-    const { error: dbError } = await supabase.from('master_ruangan').delete().eq('id', room.id)
+    const { error: dbError } = await supabase.from('master_ruangan').delete().('id', room.id)
     if (dbError) setError(dbError.message); else await loadRooms()
   }
   const importExcel = async (event: React.ChangeEvent<HTMLInputElement>) => {

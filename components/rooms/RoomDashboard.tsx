@@ -29,8 +29,8 @@ export function RoomDashboard() {
   }
   useEffect(() => { void muatRuangan() }, [])
 
-  const pilihanJenis = useMemo(() => Array.from(new Set(ruangan.map((item) => item.jenis_ruang).filter(Boolean))) as string[], [ruangan])
-  const hasil = useMemo(() => ruangan.filter((item) => `${item.nama_ruang} ${item.nama_ruang?? ''}`.toLowerCase().includes(kataKunci.toLowerCase()) && (jenis === 'Semua jenis' || item.jenis_ruang === jenis)), [ruangan, kataKunci, jenis])
+  const pilihanJenis = useMemo(() => Array.from(new Set(ruangan.map((item) => item.nama_ruang).filter(Boolean))) as string[], [ruangan])
+  const hasil = useMemo(() => ruangan.filter((item) => `${item.jenis_ruang} ${item.jenis_ruang?? ''}`.toLowerCase().includes(kataKunci.toLowerCase()) && (jenis === 'Semua jenis' || item.jenis_ruang === jenis)), [ruangan, kataKunci, jenis])
   const totalHalaman = Math.max(1, Math.ceil(hasil.length / 8))
   const tampak = hasil.slice((halaman - 1) * 8, halaman * 8)
 

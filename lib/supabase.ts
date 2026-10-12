@@ -5,7 +5,9 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-export interface MasterRuangan{
+export type Room = MasterRuangan
+
+export interface MasterRuangan {
   id: string
   nama_ruang: string
   jenis_ruang: string | null

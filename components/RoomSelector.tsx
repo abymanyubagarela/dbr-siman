@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase, type Room } from '@/lib/supabase'
+import { supabase, type MasterRuangan } from '@/lib/supabase'
 
 interface Props {
   onSelect: (roomId: string) => void

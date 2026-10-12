@@ -3,16 +3,16 @@
 @tailwind utilities;
 
 :root {
-  --background: 210 40% 98%;
-  --foreground: 215 45% 18%;
-  --primary: 217 91% 60%;
-  --secondary: 210 40% 96%;
-  --accent: 174 83% 32%;
+  --background: 0 0% 100%;
+  --foreground: 0 0% 7%;
+  --primary: 229 100% 53%;
+  --secondary: 229 100% 53%;
+  --accent: 229 100% 53%;
   --surface: 0 0% 100%;
-  --surface-deep: 210 40% 96%;
-  --ink-muted: 215 16% 46%;
-  --navy: 215 57% 18%;
-  --slate-border: 214 32% 91%;
+  --surface-deep: 220 14% 96%;
+  --ink-muted: 220 9% 42%;
+  --navy: 229 100% 53%;
+  --slate-border: 220 13% 91%;
 }
 
 * {
@@ -26,18 +26,18 @@
 
 .neu-surface {
   background: hsl(var(--surface));
-  box-shadow: 12px 12px 24px hsl(220 18% 80% / 0.9), -12px -12px 24px hsl(0 0% 100% / 0.85);
+  border: 1px solid hsl(var(--slate-border));
+  box-shadow: 0 12px 28px hsl(220 20% 20% / 0.06);
 }
 
 .neu-inset {
-  background: hsl(var(--surface-deep) / 0.55);
-  box-shadow: inset 4px 4px 10px hsl(220 18% 80% / 0.85), inset -4px -4px 10px hsl(0 0% 100% / 0.75);
+  background: hsl(var(--surface-deep));
+  border: 1px solid hsl(var(--slate-border));
 }
 
 .neu-control {
-  border: 1px solid hsl(0 0% 100% / 0.55);
+  border: 1px solid hsl(var(--slate-border));
   background: hsl(var(--surface));
-  box-shadow: 4px 4px 9px hsl(220 18% 80% / 0.75), -4px -4px 9px hsl(0 0% 100% / 0.8);
   color: hsl(var(--foreground));
 }
 

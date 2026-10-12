@@ -120,8 +120,8 @@ export default function RoomSelector({ onSelect, onStartSession, isLoading }: Pr
                     : 'border-secondary bg-white dark:bg-gray-800 hover:border-primary/50'
                 }`}
               >
-                <h3 className="font-semibold text-lg text-foreground">{room.name}</h3>
-                {room.location && <p className="text-sm text-foreground/60 mt-1">{room.location}</p>}
+                <h3 className="font-semibold text-lg text-foreground">{room.nama_ruang}</h3>
+                {room.jenis_ruang && <p className="text-sm text-foreground/60 mt-1">{room.jenis_ruang}</p>}
               </button>
             ))}
             {!showNewRoomForm && (

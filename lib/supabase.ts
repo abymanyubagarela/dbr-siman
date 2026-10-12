@@ -7,9 +7,11 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 export type Room = {
   id: string
-  name: string
-  location: string | null
+  nama_ruang: string
+  jenis_ruang: string | null
+  luas: number | null
   created_at: string
+  updated_at: string
 }
 
 export type InventorySession = {

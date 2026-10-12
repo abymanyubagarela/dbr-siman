@@ -38,7 +38,12 @@ export default function RoomSelector({ onSelect, onStartSession, isLoading }: Pr
     try {
       const { data, error } = await supabase
         .from('rooms')
-        .insert([{ name: newRoomName, location: '' }])
+        .insert([{
+            nama_ruang: newRoomName.trim(),
+            jenis_ruang: null,
+            luas: null,
+          },
+        ])
         .select()
         .single()
 

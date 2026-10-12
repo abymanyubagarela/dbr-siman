@@ -88,16 +88,31 @@ if (!jenisKey) missingColumns.push('Jenis Ruang')
 if (!luasKey) missingColumns.push('Luas')
 
 if (missingColumns.length > 0) {
-  setImportReport(
-    `Gagal: kolom ${missingColumns.join(', ')} tidak ditemukan. ` +
-    `Header yang terdeteksi: ${headers.join(', ') || 'tidak ada'}.`
-  )
-  return
+      setImportReport(
+        `Gagal: kolom ${missingColumns.join(', ')} tidak ditemukan. ` +
+        `Header yang terdeteksi: ${headers.join(', ') || 'tidak ada'}.`
+      )
+      return
+    }
+setImportReport(
+  `Impor selesai: ${success} berhasil, ${skipped} dilewati (duplikat), ${failed} gagal.`
+)
+
+await loadRooms()
+
+} catch (error) {
+  console.error('Import error:', error)
+
+  const detail =
+    typeof error === 'object' && error !== null && 'message' in error
+      ? String(error.message)
+      : String(error)
+
+  setImportReport(`Gagal impor: ${detail}`)
+} finally {
+  event.target.value = ''
 }
-      setImportReport(`Impor selesai: ${success} berhasil, ${skipped} dilewati (duplikat), ${failed} gagal.`); await loadRooms()
-    } catch { setImportReport('Gagal membaca file. Gunakan format .xlsx atau .csv dengan header yang sesuai.') }
-    event.target.value = ''
-  }
+}
 
   return <main className="min-h-screen bg-[#f7f9fc] text-slate-950">
     <header className="border-b border-slate-200/80 bg-white/90 backdrop-blur"><div className="mx-auto flex max-w-[1400px] items-center justify-between px-5 py-4 lg:px-10"><div className="flex items-center gap-3"><div className="flex size-10 items-center justify-center rounded-xl bg-slate-950 text-sm font-black tracking-tight text-white">S</div><div><p className="text-[11px] font-bold uppercase tracking-[0.22em] text-teal-600">SIMAN</p><p className="text-base font-bold tracking-tight text-slate-950">Sistem Inventaris Aset</p></div></div><div className="hidden items-center gap-3 sm:flex"><span className="size-2 rounded-full bg-emerald-500"/><span className="text-sm font-medium text-slate-500">Sistem online</span><div className="ml-3 size-9 rounded-full bg-teal-100 text-center text-sm font-bold leading-9 text-teal-800">AD</div></div></div></header>

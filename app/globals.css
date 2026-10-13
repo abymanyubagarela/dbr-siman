@@ -4,19 +4,84 @@
 
 :root {
   --background: 0 0% 100%;
-  --foreground: 0 0% 3%;
-  --primary: 220 90% 56%;
-  --secondary: 240 10% 95%;
-  --accent: 16 100% 50%;
+  --foreground: 0 0% 7%;
+  --primary: 229 100% 53%;
+  --secondary: 229 100% 53%;
+  --accent: 229 100% 53%;
+  --surface: 0 0% 100%;
+  --surface-deep: 220 14% 96%;
+  --ink-muted: 220 9% 42%;
+  --navy: 229 100% 53%;
+  --slate-border: 220 13% 91%;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: 0 0% 3%;
-    --foreground: 0 0% 100%;
-    --primary: 220 90% 56%;
-    --secondary: 240 10% 20%;
-    --accent: 16 100% 50%;
+* {
+  box-sizing: border-box;
+}
+
+::selection {
+  background: hsl(var(--primary) / 0.2);
+  color: hsl(var(--foreground));
+}
+
+.neu-surface {
+  background: hsl(var(--surface));
+  border: 1px solid hsl(var(--slate-border));
+  box-shadow: 0 12px 28px hsl(220 20% 20% / 0.06);
+}
+
+.neu-inset {
+  background: hsl(var(--surface-deep));
+  border: 1px solid hsl(var(--slate-border));
+}
+
+.neu-control {
+  border: 1px solid hsl(var(--slate-border));
+  background: hsl(var(--surface));
+  color: hsl(var(--foreground));
+}
+
+.neu-control:focus {
+  outline: 2px solid hsl(var(--primary) / 0.25);
+  outline-offset: 2px;
+}
+
+@keyframes glass-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(0, -14px, 0) scale(1.04);
+  }
+}
+
+@keyframes glass-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.glass-orb {
+  animation: glass-float 9s ease-in-out infinite;
+}
+
+.glass-rise {
+  animation: glass-rise 0.55s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
   }
 }
 
@@ -28,7 +93,9 @@ html {
 body {
   color: hsl(var(--foreground));
   background: hsl(var(--background));
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
+    "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

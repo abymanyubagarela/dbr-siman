@@ -1,77 +1,94 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { supabase, type Room } from '@/lib/supabase'
+import { useState, useEffect } from "react";
+import { supabase, type MasterRuangan } from "@/lib/supabase";
 
 interface Props {
-  onSelect: (roomId: string) => void
-  onStartSession: (roomId: string) => void
-  isLoading: boolean
+  onSelect: (roomId: string) => void;
+  onStartSession: (roomId: string) => void;
+  isLoading: boolean;
 }
 
-export default function RoomSelector({ onSelect, onStartSession, isLoading }: Props) {
-  const [rooms, setRooms] = useState<Room[]>([])
-  const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [newRoomName, setNewRoomName] = useState('')
-  const [showNewRoomForm, setShowNewRoomForm] = useState(false)
+export default function RoomSelector({
+  onSelect,
+  onStartSession,
+  isLoading,
+}: Props) {
+  const [rooms, setRooms] = useState<MasterRuangan[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [newRoomName, setNewRoomName] = useState("");
+  const [showNewRoomForm, setShowNewRoomForm] = useState(false);
 
   useEffect(() => {
-    fetchRooms()
-  }, [])
+    fetchRooms();
+  }, []);
 
   const fetchRooms = async () => {
     try {
-      const { data, error } = await supabase.from('rooms').select('*').order('created_at', { ascending: false })
-      if (error) throw error
-      setRooms(data || [])
+      const { data, error } = await supabase
+        .from("master_ruangan")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      setRooms(data || []);
     } catch (error) {
-      console.error('Failed to fetch rooms:', error)
+      console.error("Failed to fetch rooms:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleAddRoom = async () => {
-    if (!newRoomName.trim()) return
+    if (!newRoomName.trim()) return;
 
     try {
       const { data, error } = await supabase
-        .from('rooms')
-        .insert([{ name: newRoomName, location: '' }])
+        .from("master_ruangan")
+        .insert([
+          {
+            nama_ruang: newRoomName.trim(),
+            jenis_ruang: null,
+            luas: null,
+          },
+        ])
         .select()
-        .single()
+        .single();
 
-      if (error) throw error
+      if (error) throw error;
 
-      setRooms([data, ...rooms])
-      setNewRoomName('')
-      setShowNewRoomForm(false)
+      setRooms([data, ...rooms]);
+      setNewRoomName("");
+      setShowNewRoomForm(false);
     } catch (error) {
-      console.error('Failed to create room:', error)
+      console.error("Failed to create room:", error);
     }
-  }
+  };
 
   const handleSelect = (roomId: string) => {
-    setSelectedId(roomId)
-    onSelect(roomId)
-  }
+    setSelectedId(roomId);
+    onSelect(roomId);
+  };
 
   const handleStart = () => {
     if (selectedId) {
-      onStartSession(selectedId)
+      onStartSession(selectedId);
     }
-  }
+  };
 
   if (loading) {
-    return <div className="text-center py-12 text-foreground">Loading rooms...</div>
+    return (
+      <div className="text-center py-12 text-foreground">Loading rooms...</div>
+    );
   }
 
   return (
     <div className="space-y-6">
       {showNewRoomForm && (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border-2 border-primary">
-          <h2 className="text-xl font-semibold mb-4 text-foreground">Create New Room</h2>
+          <h2 className="text-xl font-semibold mb-4 text-foreground">
+            Create New Room
+          </h2>
           <div className="flex gap-2">
             <input
               type="text"
@@ -79,7 +96,7 @@ export default function RoomSelector({ onSelect, onStartSession, isLoading }: Pr
               value={newRoomName}
               onChange={(e) => setNewRoomName(e.target.value)}
               className="flex-1 px-4 py-2 border border-secondary rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              onKeyPress={(e) => e.key === 'Enter' && handleAddRoom()}
+              onKeyPress={(e) => e.key === "Enter" && handleAddRoom()}
             />
             <button
               onClick={handleAddRoom}
@@ -116,12 +133,18 @@ export default function RoomSelector({ onSelect, onStartSession, isLoading }: Pr
                 onClick={() => handleSelect(room.id)}
                 className={`p-4 rounded-lg border-2 transition text-left ${
                   selectedId === room.id
-                    ? 'border-primary bg-primary/5 shadow-md'
-                    : 'border-secondary bg-white dark:bg-gray-800 hover:border-primary/50'
+                    ? "border-primary bg-primary/5 shadow-md"
+                    : "border-secondary bg-white dark:bg-gray-800 hover:border-primary/50"
                 }`}
               >
-                <h3 className="font-semibold text-lg text-foreground">{room.name}</h3>
-                {room.location && <p className="text-sm text-foreground/60 mt-1">{room.location}</p>}
+                <h3 className="font-semibold text-lg text-foreground">
+                  {room.nama_ruang}
+                </h3>
+                {room.jenis_ruang && (
+                  <p className="text-sm text-foreground/60 mt-1">
+                    {room.jenis_ruang}
+                  </p>
+                )}
               </button>
             ))}
             {!showNewRoomForm && (
@@ -142,9 +165,9 @@ export default function RoomSelector({ onSelect, onStartSession, isLoading }: Pr
           disabled={isLoading}
           className="w-full py-4 bg-primary text-white text-lg font-semibold rounded-lg hover:bg-primary/90 disabled:bg-primary/50 transition"
         >
-          {isLoading ? 'Starting...' : 'Start Inventory Session'}
+          {isLoading ? "Starting..." : "Start Inventory Session"}
         </button>
       )}
     </div>
-  )
+  );
 }

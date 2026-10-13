@@ -120,6 +120,7 @@ export default function AssetDashboard() {
   const [kataKunci, setKataKunci] = useState("");
   const [jenisBmn, setJenisBmn] = useState("Semua jenis BMN");
   const [halaman, setHalaman] = useState(1);
+  const [totalAset, setTotalAset] = useState(0);
   const [form, setForm] = useState<FormAset>(kosong);
   const [edit, setEdit] = useState<MasterAset | null>(null);
   const [modal, setModal] = useState(false);
@@ -128,19 +129,42 @@ export default function AssetDashboard() {
   const [menyimpan, setMenyimpan] = useState(false);
   const [imporStatus, setImporStatus] = useState("");
   const { tampilkanToast } = useToast();
+
   const muatAset = async () => {
     setMemuat(true);
-    const { data, error } = await supabase
-      .from("master_aset")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (error) setKesalahan(`Data aset belum dapat dimuat: ${error.message}`);
-    else setAset((data ?? []) as MasterAset[]);
+    setKesalahan("");
+
+    const perPage = 100;
+    const mulai = (halaman - 1) * perPage;
+
+    const [{ data, error }, { count, error: countError }] = await Promise.all([
+      supabase
+        .from("master_aset")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .range(mulai, mulai + perPage - 1),
+
+      supabase.from("master_aset").select("*", { count: "exact", head: true }),
+    ]);
+
+    if (error) {
+      setKesalahan(`Data aset belum dapat dimuat: ${error.message}`);
+    } else {
+      setAset((data ?? []) as MasterAset[]);
+    }
+
+    if (countError) {
+      setKesalahan(`Jumlah aset belum dapat dihitung: ${countError.message}`);
+    } else {
+      setTotalAset(count ?? 0);
+    }
+
     setMemuat(false);
   };
+
   useEffect(() => {
     void muatAset();
-  }, []);
+  }, [halaman]);
   const jenisBmnPilihan = useMemo(
     () =>
       Array.from(
@@ -159,7 +183,7 @@ export default function AssetDashboard() {
       ),
     [aset, kataKunci, jenisBmn],
   );
-  const totalHalaman = Math.max(1, Math.ceil(hasil.length / 10));
+  const totalHalaman = Math.max(1, Math.ceil(totalAset / 10));
   const tampak = hasil.slice((halaman - 1) * 10, halaman * 10);
   const bukaTambah = () => {
     setEdit(null);

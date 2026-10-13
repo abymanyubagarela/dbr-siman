@@ -39,6 +39,7 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 ### Installation
 
 1. Install dependencies:
+
 ```bash
 npm install
 ```
@@ -48,6 +49,7 @@ npm install
 3. Create an `inventory-photos` bucket in Supabase Storage
 
 4. Start the development server:
+
 ```bash
 npm run dev
 ```

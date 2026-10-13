@@ -1,107 +1,114 @@
-'use client'
+"use client";
 
-import { useState, useRef, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { useState, useRef, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 
 interface Props {
-  sessionId: string
-  assetId: string
-  onPhotoCaptured: () => void
-  onCancel: () => void
+  sessionId: string;
+  assetId: string;
+  onPhotoCaptured: () => void;
+  onCancel: () => void;
 }
 
-export default function PhotoCapture({ sessionId, assetId, onPhotoCaptured, onCancel }: Props) {
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const [stream, setStream] = useState<MediaStream | null>(null)
-  const [capturedImage, setCapturedImage] = useState<string | null>(null)
-  const [uploading, setUploading] = useState(false)
-  const [error, setError] = useState('')
+export default function PhotoCapture({
+  sessionId,
+  assetId,
+  onPhotoCaptured,
+  onCancel,
+}: Props) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [stream, setStream] = useState<MediaStream | null>(null);
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    startCamera()
+    startCamera();
     return () => {
       if (stream) {
-        stream.getTracks().forEach((track) => track.stop())
+        stream.getTracks().forEach((track) => track.stop());
       }
-    }
-  }, [])
+    };
+  }, []);
 
   const startCamera = async () => {
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' },
-      })
-      setStream(mediaStream)
+        video: { facingMode: "environment" },
+      });
+      setStream(mediaStream);
       if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream
+        videoRef.current.srcObject = mediaStream;
       }
     } catch (err) {
-      setError('Unable to access camera. Please check permissions.')
-      console.error('Camera access error:', err)
+      setError("Unable to access camera. Please check permissions.");
+      console.error("Camera access error:", err);
     }
-  }
+  };
 
   const capturePhoto = () => {
     if (videoRef.current && canvasRef.current) {
-      const context = canvasRef.current.getContext('2d')
+      const context = canvasRef.current.getContext("2d");
       if (context) {
-        canvasRef.current.width = videoRef.current.videoWidth
-        canvasRef.current.height = videoRef.current.videoHeight
-        context.drawImage(videoRef.current, 0, 0)
-        const imageData = canvasRef.current.toDataURL('image/jpeg')
-        setCapturedImage(imageData)
+        canvasRef.current.width = videoRef.current.videoWidth;
+        canvasRef.current.height = videoRef.current.videoHeight;
+        context.drawImage(videoRef.current, 0, 0);
+        const imageData = canvasRef.current.toDataURL("image/jpeg");
+        setCapturedImage(imageData);
       }
     }
-  }
+  };
 
   const uploadPhoto = async () => {
-    if (!capturedImage) return
+    if (!capturedImage) return;
 
-    setUploading(true)
+    setUploading(true);
     try {
       // Convert data URL to blob
-      const response = await fetch(capturedImage)
-      const blob = await response.blob()
+      const response = await fetch(capturedImage);
+      const blob = await response.blob();
 
       // Upload to Supabase Storage
-      const fileName = `${sessionId}/${assetId}-${Date.now()}.jpg`
+      const fileName = `${sessionId}/${assetId}-${Date.now()}.jpg`;
       const { data, error: uploadError } = await supabase.storage
-        .from('inventory-photos')
-        .upload(fileName, blob, { upsert: true })
+        .from("inventory-photos")
+        .upload(fileName, blob, { upsert: true });
 
-      if (uploadError) throw uploadError
+      if (uploadError) throw uploadError;
 
       // Get public URL
-      const { data: urlData } = supabase.storage.from('inventory-photos').getPublicUrl(fileName)
+      const { data: urlData } = supabase.storage
+        .from("inventory-photos")
+        .getPublicUrl(fileName);
 
       // Update inventory item with image URL and status
       const { error: updateError } = await supabase
-        .from('inventory_items')
+        .from("inventory_items")
         .update({
           image_url: urlData.publicUrl,
-          status: 'photographed',
+          status: "photographed",
         })
-        .eq('session_id', sessionId)
-        .eq('asset_id', assetId)
+        .eq("session_id", sessionId)
+        .eq("asset_id", assetId);
 
-      if (updateError) throw updateError
+      if (updateError) throw updateError;
 
-      setCapturedImage(null)
-      onPhotoCaptured()
+      setCapturedImage(null);
+      onPhotoCaptured();
     } catch (err) {
-      console.error('Upload error:', err)
-      setError('Failed to upload photo')
+      console.error("Upload error:", err);
+      setError("Failed to upload photo");
     } finally {
-      setUploading(false)
+      setUploading(false);
     }
-  }
+  };
 
   const retakePhoto = () => {
-    setCapturedImage(null)
-    startCamera()
-  }
+    setCapturedImage(null);
+    startCamera();
+  };
 
   if (error) {
     return (
@@ -115,14 +122,16 @@ export default function PhotoCapture({ sessionId, assetId, onPhotoCaptured, onCa
           Back to Scanning
         </button>
       </div>
-    )
+    );
   }
 
   return (
     <div className="space-y-6">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden border-2 border-primary">
         <div className="p-4 bg-foreground/5">
-          <p className="text-sm font-medium text-foreground">Asset ID: {assetId}</p>
+          <p className="text-sm font-medium text-foreground">
+            Asset ID: {assetId}
+          </p>
         </div>
 
         {!capturedImage ? (
@@ -144,13 +153,13 @@ export default function PhotoCapture({ sessionId, assetId, onPhotoCaptured, onCa
               type="file"
               accept="image/*"
               onChange={(e) => {
-                const file = e.target.files?.[0]
+                const file = e.target.files?.[0];
                 if (file) {
-                  const reader = new FileReader()
+                  const reader = new FileReader();
                   reader.onload = (event) => {
-                    setCapturedImage(event.target?.result as string)
-                  }
-                  reader.readAsDataURL(file)
+                    setCapturedImage(event.target?.result as string);
+                  };
+                  reader.readAsDataURL(file);
                 }
               }}
               className="hidden"
@@ -158,7 +167,11 @@ export default function PhotoCapture({ sessionId, assetId, onPhotoCaptured, onCa
           </div>
         ) : (
           <div className="aspect-video bg-black relative">
-            <img src={capturedImage} alt="Captured" className="w-full h-full object-cover" />
+            <img
+              src={capturedImage}
+              alt="Captured"
+              className="w-full h-full object-cover"
+            />
           </div>
         )}
 
@@ -185,7 +198,7 @@ export default function PhotoCapture({ sessionId, assetId, onPhotoCaptured, onCa
                 disabled={uploading}
                 className="w-full py-4 bg-primary text-white font-bold rounded-lg hover:bg-primary/90 disabled:bg-primary/50 transition text-lg"
               >
-                {uploading ? 'Uploading...' : '✓ Confirm & Save'}
+                {uploading ? "Uploading..." : "✓ Confirm & Save"}
               </button>
               <button
                 onClick={retakePhoto}
@@ -198,5 +211,5 @@ export default function PhotoCapture({ sessionId, assetId, onPhotoCaptured, onCa
         </div>
       </div>
     </div>
-  )
+  );
 }

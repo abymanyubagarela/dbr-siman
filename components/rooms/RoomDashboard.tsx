@@ -1,100 +1,802 @@
-'use client'
+"use client";
 
-import { useEffect, useMemo, useState } from 'react'
-import { read, utils } from 'xlsx'
-import { supabase, type MasterRuangan } from '@/lib/supabase'
-import { EmptyState, ErrorState, KonfirmasiDialog, LoadingSpinner, StatusBadge, Tombol, useToast } from '@/components/ui/feedback'
-import { TablePagination, TableToolbar } from '@/components/ui/data-table'
+import { useEffect, useMemo, useState } from "react";
+import { read, utils } from "xlsx";
+import { supabase, type MasterRuangan } from "@/lib/supabase";
+import {
+  EmptyState,
+  ErrorState,
+  KonfirmasiDialog,
+  LoadingSpinner,
+  StatusBadge,
+  Tombol,
+  useToast,
+} from "@/components/ui/feedback";
+import { TablePagination, TableToolbar } from "@/components/ui/data-table";
 
-type FormRuangan = { nama_ruang: string; jenis_ruang: string; luas: string }
-const kosong: FormRuangan = { nama_ruang: '', jenis_ruang: '', luas: '' }
+type FormRuangan = { nama_ruang: string; jenis_ruang: string; luas: string };
+const kosong: FormRuangan = { nama_ruang: "", jenis_ruang: "", luas: "" };
 
 export function RoomDashboard() {
-  const [ruangan, setRuangan] = useState<MasterRuangan[]>([])
-  const [memuat, setMemuat] = useState(true)
-  const [pesan, setPesan] = useState('')
-  const [kesalahan, setKesalahan] = useState('')
-  const [kataKunci, setKataKunci] = useState('')
-  const [jenis, setJenis] = useState('Semua jenis')
-  const [halaman, setHalaman] = useState(1)
-  const [form, setForm] = useState<FormRuangan>(kosong)
-  const [edit, setEdit] = useState<MasterRuangan | null>(null)
-  const [modal, setModal] = useState(false)
-  const [detail, setDetail] = useState<MasterRuangan | null>(null)
-  const [konfirmasiHapus, setKonfirmasiHapus] = useState<MasterRuangan | null>(null)
-  const [menyimpan, setMenyimpan] = useState(false)
-  const { tampilkanToast } = useToast()
+  const [ruangan, setRuangan] = useState<MasterRuangan[]>([]);
+  const [memuat, setMemuat] = useState(true);
+  const [pesan, setPesan] = useState("");
+  const [kesalahan, setKesalahan] = useState("");
+  const [kataKunci, setKataKunci] = useState("");
+  const [jenis, setJenis] = useState("Semua jenis");
+  const [halaman, setHalaman] = useState(1);
+  const [form, setForm] = useState<FormRuangan>(kosong);
+  const [edit, setEdit] = useState<MasterRuangan | null>(null);
+  const [modal, setModal] = useState(false);
+  const [detail, setDetail] = useState<MasterRuangan | null>(null);
+  const [konfirmasiHapus, setKonfirmasiHapus] = useState<MasterRuangan | null>(
+    null,
+  );
+  const [menyimpan, setMenyimpan] = useState(false);
+  const { tampilkanToast } = useToast();
 
   const muatRuangan = async () => {
-    setMemuat(true)
-    const { data, error } = await supabase.from('master_ruangan').select('id,nama_ruang,jenis_ruang,luas,created_at,updated_at').order('created_at', { ascending: false })
-    if (error) setKesalahan('Data ruangan belum dapat dimuat. Periksa koneksi dan izin database.')
-    else setRuangan((data ?? []) as MasterRuangan[])
-    setMemuat(false)
-  }
-  useEffect(() => { void muatRuangan() }, [])
+    setMemuat(true);
+    const { data, error } = await supabase
+      .from("master_ruangan")
+      .select("id,nama_ruang,jenis_ruang,luas,created_at,updated_at")
+      .order("created_at", { ascending: false });
+    if (error)
+      setKesalahan(
+        "Data ruangan belum dapat dimuat. Periksa koneksi dan izin database.",
+      );
+    else setRuangan((data ?? []) as MasterRuangan[]);
+    setMemuat(false);
+  };
+  useEffect(() => {
+    void muatRuangan();
+  }, []);
 
-  const pilihanJenis = useMemo(() => Array.from(new Set(ruangan.map((item) => item.jenis_ruang).filter(Boolean))) as string[], [ruangan])
-  const distribusiJenis = useMemo(() => pilihanJenis.map((nama) => ({ nama, jumlah: ruangan.filter((item) => item.jenis_ruang === nama).length })).sort((a, b) => b.jumlah - a.jumlah), [pilihanJenis, ruangan])
-  const distribusiNamaRuang = useMemo(() => Array.from(new Set(ruangan.map((item) => item.nama_ruang).filter(Boolean))).map((nama) => ({ nama, jumlah: ruangan.filter((item) => item.nama_ruang === nama).length })).sort((a, b) => b.jumlah - a.jumlah).slice(0, 12), [ruangan])
-  const hasil = useMemo(() => ruangan.filter((item) => `${item.nama_ruang} ${item.jenis_ruang ?? ''}`.toLowerCase().includes(kataKunci.toLowerCase()) && (jenis === 'Semua jenis' || item.jenis_ruang === jenis)), [ruangan, kataKunci, jenis])
-  const totalHalaman = Math.max(1, Math.ceil(hasil.length / 8))
-  const tampak = hasil.slice((halaman - 1) * 8, halaman * 8)
+  const pilihanJenis = useMemo(
+    () =>
+      Array.from(
+        new Set(ruangan.map((item) => item.jenis_ruang).filter(Boolean)),
+      ) as string[],
+    [ruangan],
+  );
+  const distribusiJenis = useMemo(
+    () =>
+      pilihanJenis
+        .map((nama) => ({
+          nama,
+          jumlah: ruangan.filter((item) => item.jenis_ruang === nama).length,
+        }))
+        .sort((a, b) => b.jumlah - a.jumlah),
+    [pilihanJenis, ruangan],
+  );
+  const distribusiNamaRuang = useMemo(
+    () =>
+      Array.from(
+        new Set(ruangan.map((item) => item.nama_ruang).filter(Boolean)),
+      )
+        .map((nama) => ({
+          nama,
+          jumlah: ruangan.filter((item) => item.nama_ruang === nama).length,
+        }))
+        .sort((a, b) => b.jumlah - a.jumlah)
+        .slice(0, 12),
+    [ruangan],
+  );
+  const hasil = useMemo(
+    () =>
+      ruangan.filter(
+        (item) =>
+          `${item.nama_ruang} ${item.jenis_ruang ?? ""}`
+            .toLowerCase()
+            .includes(kataKunci.toLowerCase()) &&
+          (jenis === "Semua jenis" || item.jenis_ruang === jenis),
+      ),
+    [ruangan, kataKunci, jenis],
+  );
+  const totalHalaman = Math.max(1, Math.ceil(hasil.length / 8));
+  const tampak = hasil.slice((halaman - 1) * 8, halaman * 8);
 
-  const bukaTambah = () => { setEdit(null); setForm(kosong); setKesalahan(''); setModal(true) }
-  const bukaEdit = (item: MasterRuangan) => { setEdit(item); setForm({ nama_ruang: item.nama_ruang, jenis_ruang: item.jenis_ruang ?? '', luas: item.luas?.toString() ?? '' }); setKesalahan(''); setModal(true) }
+  const bukaTambah = () => {
+    setEdit(null);
+    setForm(kosong);
+    setKesalahan("");
+    setModal(true);
+  };
+  const bukaEdit = (item: MasterRuangan) => {
+    setEdit(item);
+    setForm({
+      nama_ruang: item.nama_ruang,
+      jenis_ruang: item.jenis_ruang ?? "",
+      luas: item.luas?.toString() ?? "",
+    });
+    setKesalahan("");
+    setModal(true);
+  };
   const simpan = async (event: React.FormEvent) => {
-    event.preventDefault(); setKesalahan(''); setMenyimpan(true)
+    event.preventDefault();
+    setKesalahan("");
+    setMenyimpan(true);
     try {
-      const luas = form.luas.trim() ? Number(form.luas.replace(',', '.')) : null
-      if (!form.nama_ruang.trim()) { setKesalahan('Nama ruang wajib diisi.'); return }
-      if (form.luas.trim() && (luas === null || !Number.isFinite(luas) || luas < 0)) { setKesalahan('Luas harus berupa angka positif.'); return }
-      const data = { nama_ruang: form.nama_ruang.trim(), jenis_ruang: form.jenis_ruang.trim() || null, luas }
-      const hasilSimpan = edit ? await supabase.from('master_ruangan').update({ ...data, updated_at: new Date().toISOString() }).eq('id', edit.id).select('id').maybeSingle() : await supabase.from('master_ruangan').insert(data).select('id').maybeSingle()
-      if (hasilSimpan.error || !hasilSimpan.data) { setKesalahan(hasilSimpan.error?.message ?? 'Perubahan tidak tersimpan.'); tampilkanToast('galat', 'Perubahan tidak tersimpan.'); return }
-      setModal(false); setPesan(edit ? 'Data ruangan berhasil diperbarui.' : 'Ruangan baru berhasil ditambahkan.'); tampilkanToast('sukses', edit ? 'Data ruangan diperbarui.' : 'Ruangan baru ditambahkan.'); await muatRuangan()
-    } finally { setMenyimpan(false) }
-  }
-  const hapus = async (item: MasterRuangan) => {
-    const hasilHapus = await supabase.from('master_ruangan').delete().eq('id', item.id).select('id').maybeSingle()
-    setKonfirmasiHapus(null)
-    if (hasilHapus.error || !hasilHapus.data) { setKesalahan(hasilHapus.error?.message ?? 'Ruangan tidak terhapus.'); tampilkanToast('galat', 'Ruangan tidak terhapus.'); return }
-    setPesan('Ruangan berhasil dihapus.'); tampilkanToast('sukses', 'Ruangan berhasil dihapus.'); if (detail?.id === item.id) setDetail(null); await muatRuangan()
-  }
-  const imporExcel = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]; if (!file) return
-    try {
-      const buku = read(await file.arrayBuffer(), { type: 'array' }); const baris = utils.sheet_to_json<Record<string, unknown>>(buku.Sheets[buku.SheetNames[0]], { defval: '' })
-      const data = baris.map((baris) => { const normal: Record<string, string> = {}; Object.entries(baris).forEach(([k, v]) => { normal[k.toLowerCase().trim().replace(/[_\s]+/g, ' ')] = String(v ?? '').trim() }); return normal })
-      let berhasil = 0; let dilewati = 0; let gagal = 0
-      for (const item of data) {
-        const nama = item['nama ruang'] || item['nama ruangan'] || item.nama_ruang; const tipe = item['jenis ruang'] || item['jenis ruangan'] || item.jenis_ruang; const luasTeks = (item.luas || item['luas ruangan'] || '').replace(',', '.'); const luas = luasTeks ? Number(luasTeks) : null
-        if (!nama || (luasTeks && !Number.isFinite(luas))) { gagal++; continue }
-        const duplikat = await supabase.from('master_ruangan').select('id').eq('nama_ruang', nama).eq('jenis_ruang', tipe || '').maybeSingle()
-        if (duplikat.data) { dilewati++; continue }
-        const masuk = await supabase.from('master_ruangan').insert({ nama_ruang: nama, jenis_ruang: tipe || null, luas })
-        masuk.error ? gagal++ : berhasil++
+      const luas = form.luas.trim()
+        ? Number(form.luas.replace(",", "."))
+        : null;
+      if (!form.nama_ruang.trim()) {
+        setKesalahan("Nama ruang wajib diisi.");
+        return;
       }
-      setPesan(`Impor selesai: ${berhasil} berhasil, ${dilewati} duplikat dilewati, ${gagal} gagal.`); await muatRuangan()
-    } catch { setKesalahan('File Excel tidak dapat dibaca. Gunakan format .xlsx atau .csv.') } finally { event.target.value = '' }
-  }
+      if (
+        form.luas.trim() &&
+        (luas === null || !Number.isFinite(luas) || luas < 0)
+      ) {
+        setKesalahan("Luas harus berupa angka positif.");
+        return;
+      }
+      const data = {
+        nama_ruang: form.nama_ruang.trim(),
+        jenis_ruang: form.jenis_ruang.trim() || null,
+        luas,
+      };
+      const hasilSimpan = edit
+        ? await supabase
+            .from("master_ruangan")
+            .update({ ...data, updated_at: new Date().toISOString() })
+            .eq("id", edit.id)
+            .select("id")
+            .maybeSingle()
+        : await supabase
+            .from("master_ruangan")
+            .insert(data)
+            .select("id")
+            .maybeSingle();
+      if (hasilSimpan.error || !hasilSimpan.data) {
+        setKesalahan(
+          hasilSimpan.error?.message ?? "Perubahan tidak tersimpan.",
+        );
+        tampilkanToast("galat", "Perubahan tidak tersimpan.");
+        return;
+      }
+      setModal(false);
+      setPesan(
+        edit
+          ? "Data ruangan berhasil diperbarui."
+          : "Ruangan baru berhasil ditambahkan.",
+      );
+      tampilkanToast(
+        "sukses",
+        edit ? "Data ruangan diperbarui." : "Ruangan baru ditambahkan.",
+      );
+      await muatRuangan();
+    } finally {
+      setMenyimpan(false);
+    }
+  };
+  const hapus = async (item: MasterRuangan) => {
+    const hasilHapus = await supabase
+      .from("master_ruangan")
+      .delete()
+      .eq("id", item.id)
+      .select("id")
+      .maybeSingle();
+    setKonfirmasiHapus(null);
+    if (hasilHapus.error || !hasilHapus.data) {
+      setKesalahan(hasilHapus.error?.message ?? "Ruangan tidak terhapus.");
+      tampilkanToast("galat", "Ruangan tidak terhapus.");
+      return;
+    }
+    setPesan("Ruangan berhasil dihapus.");
+    tampilkanToast("sukses", "Ruangan berhasil dihapus.");
+    if (detail?.id === item.id) setDetail(null);
+    await muatRuangan();
+  };
+  const imporExcel = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      const buku = read(await file.arrayBuffer(), { type: "array" });
+      const baris = utils.sheet_to_json<Record<string, unknown>>(
+        buku.Sheets[buku.SheetNames[0]],
+        { defval: "" },
+      );
+      const data = baris.map((baris) => {
+        const normal: Record<string, string> = {};
+        Object.entries(baris).forEach(([k, v]) => {
+          normal[
+            k
+              .toLowerCase()
+              .trim()
+              .replace(/[_\s]+/g, " ")
+          ] = String(v ?? "").trim();
+        });
+        return normal;
+      });
+      let berhasil = 0;
+      let dilewati = 0;
+      let gagal = 0;
+      for (const item of data) {
+        const nama =
+          item["nama ruang"] || item["nama ruangan"] || item.nama_ruang;
+        const tipe =
+          item["jenis ruang"] || item["jenis ruangan"] || item.jenis_ruang;
+        const luasTeks = (item.luas || item["luas ruangan"] || "").replace(
+          ",",
+          ".",
+        );
+        const luas = luasTeks ? Number(luasTeks) : null;
+        if (!nama || (luasTeks && !Number.isFinite(luas))) {
+          gagal++;
+          continue;
+        }
+        const duplikat = await supabase
+          .from("master_ruangan")
+          .select("id")
+          .eq("nama_ruang", nama)
+          .eq("jenis_ruang", tipe || "")
+          .maybeSingle();
+        if (duplikat.data) {
+          dilewati++;
+          continue;
+        }
+        const masuk = await supabase
+          .from("master_ruangan")
+          .insert({ nama_ruang: nama, jenis_ruang: tipe || null, luas });
+        masuk.error ? gagal++ : berhasil++;
+      }
+      setPesan(
+        `Impor selesai: ${berhasil} berhasil, ${dilewati} duplikat dilewati, ${gagal} gagal.`,
+      );
+      await muatRuangan();
+    } catch {
+      setKesalahan(
+        "File Excel tidak dapat dibaca. Gunakan format .xlsx atau .csv.",
+      );
+    } finally {
+      event.target.value = "";
+    }
+  };
 
-  return <main className="min-h-screen bg-[#f5f7fb] text-[hsl(var(--foreground))]"><div className="pointer-events-none fixed inset-0 bg-[linear-gradient(135deg,rgba(16,69,255,0.035),transparent_32%)]"/>
-    <header className="sticky top-0 z-10 border-b border-white/15 bg-[#1045FF] text-white shadow-lg shadow-blue-900/10"><div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-5 py-3 lg:px-8"><div className="flex items-center gap-3"><div className="flex size-9 items-center justify-center rounded-lg bg-white font-black text-[#1045FF]">S</div><div><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-100">SIMAN</p><p className="text-sm font-semibold">Sistem Inventaris Aset Negara</p></div></div><nav aria-label="Navigasi utama" className="hidden items-center gap-1 text-sm font-semibold md:flex"><a className="rounded-lg bg-white px-3 py-2 text-[#1045FF]" href="#ruangan">Ruangan</a><a className="rounded-lg px-3 py-2 text-blue-100 transition hover:bg-white/15 hover:text-white" href="#aset">Aset</a><a className="rounded-lg px-3 py-2 text-blue-100 transition hover:bg-white/15 hover:text-white" href="#impor">Impor Excel</a><a className="rounded-lg px-3 py-2 text-blue-100 transition hover:bg-white/15 hover:text-white" href="#qr">Kode QR</a></nav><div className="flex items-center gap-2 text-xs text-blue-100"><span className="size-2 rounded-full bg-emerald-400"/>Sistem aktif</div></div></header>
-    <section id="ruangan" className="relative mx-auto max-w-7xl px-5 py-8 lg:px-5 lg:py-10"><div className="mb-7 flex flex-col justify-between gap-5 lg:flex-row lg:items-end"><div><p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-blue-700">Pusat kendali aset</p><h1 className="text-3xl font-bold tracking-tight text-[hsl(var(--navy))] sm:text-4xl">Manajemen ruang</h1><p className="mt-2 max-w-xl text-sm leading-6 text-[hsl(var(--ink-muted))]">Kelola data master ruangan secara terpusat, cepat, dan siap digunakan untuk inventarisasi.</p></div><div className="flex flex-wrap gap-2"><label className="cursor-pointer rounded-lg border border-[hsl(var(--slate-border))] bg-white px-4 py-2.5 text-sm font-semibold text-[hsl(var(--navy))] shadow-sm transition hover:border-blue-300 hover:bg-blue-50">Impor Excel<input type="file" accept=".xlsx,.csv" className="sr-only" onChange={imporExcel}/></label><button onClick={bukaTambah} className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700">+ Tambah ruang</button></div></div>
-      <div className="mb-6 grid gap-4 lg:grid-cols-12"><div className="rounded-2xl bg-[#1045FF] lg:col-span-5 p-6 text-white shadow-lg shadow-blue-900/10"><div className="flex items-start justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[0.16em] text-blue-100">Ringkasan inventaris</p><h2 className="mt-3 text-2xl font-bold">Data ruangan terkelola</h2><p className="mt-2 max-w-md text-sm leading-6 text-blue-100">Pantau jumlah ruang, kategori, dan luas tercatat dari satu dashboard.</p></div><span className="rounded-xl bg-white/15 px-3 py-2 text-xs font-bold">2026</span></div><div className="mt-6 flex items-end gap-2"><span className="text-4xl font-black">{ruangan.length}</span><span className="pb-1 text-sm text-blue-100">ruangan terdaftar</span></div></div><div className="rounded-xl border border-[hsl(var(--slate-border))] bg-white p-5 shadow-sm lg:col-span-7"><div className="flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-wider text-[hsl(var(--ink-muted))]">Distribusi kategori</p><p className="mt-1 text-sm text-[hsl(var(--ink-muted))]">Jumlah data setiap nama ruang</p></div><span className="text-xs font-bold text-[#1045FF]">{distribusiNamaRuang.length} kategori</span></div><div className="mt-5 flex h-56 items-end gap-2 overflow-x-auto pb-1 sm:gap-3">{distribusiNamaRuang.length === 0 ? <p className="w-full self-center text-center text-sm text-[hsl(var(--ink-muted))]">Belum ada data ruang.</p> : distribusiNamaRuang.map(({ nama, jumlah }) => { const maksimum = Math.max(1, ...distribusiNamaRuang.map((item) => item.jumlah)); const tinggi = Math.max(8, Math.round((jumlah / maksimum) * 100)); return <div key={nama} className="flex h-full min-w-12 flex-1 flex-col items-center justify-end gap-2"><span className="text-[11px] font-bold text-[#1045FF]">{jumlah}</span><div className="w-full max-w-10 rounded-t-md bg-[#1045FF] transition-all hover:bg-[#0d36cf]" style={{ height: `${tinggi}%` }} title={`${nama}: ${jumlah}`} /><span className="w-16 truncate text-center text-[10px] text-[hsl(var(--ink-muted))]" title={nama}>{nama}</span></div> })}</div></div></div>
-      <div className="mb-6 grid gap-4 md:grid-cols-12"><div className="grid gap-4 sm:grid-cols-2 md:col-span-6"><Stat label="Luas tercatat" value={Math.round(ruangan.reduce((total, item) => total + (Number(item.luas) || 0), 0))} caption="m² tercatat"/><Stat label="Jenis ruang / kategori aktif" value={pilihanJenis.length} caption="Kategori unik"/></div><div className="hidden"><div className="flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-wider text-[hsl(var(--ink-muted))]">Distribusi kategori</p><p className="mt-1 text-sm text-[hsl(var(--ink-muted))]">Jumlah data untuk setiap nama ruang</p></div><span className="text-xs font-bold text-[#1045FF]">{distribusiNamaRuang.length} ruang</span></div><div className="mt-5 flex min-h-56 flex-col justify-center gap-3">{distribusiNamaRuang.length === 0 ? <p className="py-6 text-sm text-[hsl(var(--ink-muted))]">Belum ada data nama ruang.</p> : distribusiNamaRuang.map(({ nama, jumlah }) => { const persentase = Math.round((jumlah / Math.max(1, Math.max(...distribusiNamaRuang.map((item) => item.jumlah)))) * 100); return <div key={nama} className="group grid grid-cols-[minmax(0,1.25fr)_minmax(6rem,2fr)_2rem] items-center gap-3 text-xs"><span className="truncate font-semibold text-slate-700" title={nama}>{nama}</span><div className="h-3 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-[#1045FF] transition-all duration-500 group-hover:bg-[#0d36cf]" style={{ width: `${Math.max(8, persentase)}%` }} /></div><span className="text-right font-bold text-[#1045FF]">{jumlah}</span></div> })}</div></div><div className="rounded-xl border border-[hsl(var(--slate-border))] bg-white p-5 shadow-sm md:col-span-6"><p className="text-xs font-bold uppercase tracking-wider text-[hsl(var(--ink-muted))]">Aksi cepat</p><div className="mt-4 grid grid-cols-2 gap-3"><button onClick={bukaTambah} className="rounded-xl border border-blue-100 bg-blue-50 p-4 text-left text-sm font-bold text-[#1045FF] transition hover:bg-blue-100">+ Tambah ruang</button><label className="cursor-pointer rounded-xl border border-slate-200 bg-slate-50 p-4 text-left text-sm font-bold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50">Impor Excel<input type="file" accept=".xlsx,.csv" className="sr-only" onChange={imporExcel}/></label><button onClick={() => document.getElementById('ruang-search')?.focus()} className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-left text-sm font-bold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50">Cari data</button><a href="#qr" className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-left text-sm font-bold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50">Kode QR</a></div></div></div>
-      {pesan && <Notice tone="info" text={pesan}/>} {kesalahan && <Notice tone="error" text={kesalahan}/>}<div className="overflow-hidden rounded-xl border border-[hsl(var(--slate-border))] bg-white shadow-sm"><TableToolbar><div><h2 className="font-bold">Daftar ruang</h2><p className="mt-1 text-xs text-slate-500">{hasil.length} hasil dari {ruangan.length} data</p></div><div className="flex flex-col gap-2 sm:flex-row"><input id="ruang-search" value={kataKunci} onChange={(e) => { setKataKunci(e.target.value); setHalaman(1) }} placeholder="Cari nama atau jenis..." className="rounded-xl border border-[hsl(var(--slate-border))] bg-slate-50 px-3 py-2.5 text-sm outline-none placeholder:text-slate-500 focus:border-cyan-300"/><select value={jenis} onChange={(e) => { setJenis(e.target.value); setHalaman(1) }} className="rounded-xl border border-[hsl(var(--slate-border))] px-3 py-2.5 text-sm outline-none focus:border-cyan-300"><option>Semua jenis</option>{pilihanJenis.map((item) => <option key={item}>{item}</option>)}</select></div></TableToolbar>
-        {memuat ? <LoadingSpinner label="Memuat data ruang..." /> : kesalahan && ruangan.length === 0 ? <ErrorState pesan={kesalahan} cobaLagi={() => void muatRuangan()} /> : tampak.length === 0 ? <EmptyState judul="Belum ada data ruang" pesan="Tambahkan data baru atau impor dari Excel." aksi={<Tombol onClick={bukaTambah}>Tambah ruang</Tombol>} /> : <div className="overflow-x-auto"><table className="w-full min-w-[700px] text-left text-sm"><thead className="bg-[hsl(var(--surface-deep)/0.6)] text-[10px] uppercase tracking-wider text-[hsl(var(--ink-muted))]"><tr><th className="px-5 py-4">Nama ruang</th><th className="px-5 py-4">Jenis ruang</th><th className="px-5 py-4">Luas</th><th className="px-5 py-4 text-right">Aksi</th></tr></thead><tbody className="divide-y divide-white/10">{tampak.map((item) => <tr key={item.id} className="transition hover:bg-white/[0.05]"><td className="px-5 py-4 font-semibold">{item.nama_ruang}</td><td className="px-5 py-4">{item.jenis_ruang ? <StatusBadge warna="aktif">{item.jenis_ruang}</StatusBadge> : <StatusBadge>Belum diisi</StatusBadge>}</td><td className="px-5 py-4 text-[hsl(var(--ink-muted))]">{item.luas != null ? `${item.luas} m²` : 'Belum diisi'}</td><td className="px-5 py-4"><div className="flex justify-end gap-2"><button onClick={() => setDetail(item)} className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-cyan-700 hover:bg-cyan-300/10">Detail</button><button onClick={() => bukaEdit(item)} className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-[hsl(var(--ink-muted))] hover:bg-white/10">Edit</button><button onClick={() => setKonfirmasiHapus(item)} className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50">Hapus</button></div></td></tr>)}</tbody></table></div>}
-        {hasil.length > 0 && <TablePagination halaman={halaman} totalHalaman={totalHalaman} saatUbah={setHalaman} />}</div></section>
-    {modal && <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/60 p-4 backdrop-blur-md"><form onSubmit={simpan} className="w-full max-w-md rounded-xl border border-[hsl(var(--slate-border))] bg-white p-6 shadow-xl"><p className="text-xs font-bold uppercase tracking-wider text-cyan-700">Master ruang</p><h2 className="mt-2 text-2xl font-black">{edit ? 'Edit data ruang' : 'Tambah ruang'}</h2><div className="mt-6 flex flex-col gap-4"><Field label="Nama ruang" value={form.nama_ruang} onChange={(value) => setForm({ ...form, nama_ruang: value })} required/><Field label="Jenis ruang" value={form.jenis_ruang} onChange={(value) => setForm({ ...form, jenis_ruang: value })}/><Field label="Luas ruang (m²)" type="number" value={form.luas} onChange={(value) => setForm({ ...form, luas: value })}/></div><div className="mt-7 flex justify-end gap-3"><button type="button" onClick={() => setModal(false)} className="rounded-xl border border-white/15 px-4 py-2.5 text-sm font-semibold">Batal</button><Tombol type="submit" memuat={menyimpan}>Simpan data</Tombol></div></form></div>}
-    <KonfirmasiDialog terbuka={Boolean(konfirmasiHapus)} pesan={konfirmasiHapus ? `Hapus ruang “${konfirmasiHapus.nama_ruang}”?` : ''} labelKonfirmasi="Hapus" saatBatal={() => setKonfirmasiHapus(null)} saatKonfirmasi={() => konfirmasiHapus && void hapus(konfirmasiHapus)} />
-    {detail && <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/60 p-4 backdrop-blur-md"><div className="w-full max-w-md rounded-xl border border-[hsl(var(--slate-border))] bg-white p-6 shadow-xl"><div className="flex items-start justify-between"><div><p className="text-xs font-bold uppercase tracking-wider text-cyan-700">Detail ruang</p><h2 className="mt-2 text-2xl font-black">{detail.nama_ruang}</h2></div><button onClick={() => setDetail(null)} aria-label="Tutup detail" className="text-2xl text-slate-500">×</button></div><div className="mt-6 rounded-2xl bg-slate-50 p-4 text-sm"><p className="text-slate-500">Jenis ruang</p><strong className="mt-1 block">{detail.jenis_ruang || 'Belum diisi'}</strong><p className="mt-4 text-slate-500">Luas ruang</p><strong className="mt-1 block">{detail.luas != null ? `${detail.luas} m²` : 'Belum diisi'}</strong></div></div></div>}
-  </main>
+  return (
+    <main className="min-h-screen bg-[#f5f7fb] text-[hsl(var(--foreground))]">
+      <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(135deg,rgba(16,69,255,0.035),transparent_32%)]" />
+      <header className="sticky top-0 z-10 border-b border-white/15 bg-[#1045FF] text-white shadow-lg shadow-blue-900/10">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-5 py-3 lg:px-8">
+          <div className="flex items-center gap-3">
+            <div className="flex size-9 items-center justify-center rounded-lg bg-white font-black text-[#1045FF]">
+              S
+            </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-100">
+                SIMAN
+              </p>
+              <p className="text-sm font-semibold">
+                Sistem Inventaris Aset Negara
+              </p>
+            </div>
+          </div>
+          <nav
+            aria-label="Navigasi utama"
+            className="hidden items-center gap-1 text-sm font-semibold md:flex"
+          >
+            <a
+              className="rounded-lg bg-white px-3 py-2 text-[#1045FF]"
+              href="#ruangan"
+            >
+              Ruangan
+            </a>
+            <a
+              className="rounded-lg px-3 py-2 text-blue-100 transition hover:bg-white/15 hover:text-white"
+              href="#aset"
+            >
+              Aset
+            </a>
+            <a
+              className="rounded-lg px-3 py-2 text-blue-100 transition hover:bg-white/15 hover:text-white"
+              href="#impor"
+            >
+              Impor Excel
+            </a>
+            <a
+              className="rounded-lg px-3 py-2 text-blue-100 transition hover:bg-white/15 hover:text-white"
+              href="#qr"
+            >
+              Kode QR
+            </a>
+          </nav>
+          <div className="flex items-center gap-2 text-xs text-blue-100">
+            <span className="size-2 rounded-full bg-emerald-400" />
+            Sistem aktif
+          </div>
+        </div>
+      </header>
+      <section
+        id="ruangan"
+        className="relative mx-auto max-w-7xl px-5 py-8 lg:px-5 lg:py-10"
+      >
+        <div className="mb-7 flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
+          <div>
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-blue-700">
+              Pusat kendali aset
+            </p>
+            <h1 className="text-3xl font-bold tracking-tight text-[hsl(var(--navy))] sm:text-4xl">
+              Manajemen ruang
+            </h1>
+            <p className="mt-2 max-w-xl text-sm leading-6 text-[hsl(var(--ink-muted))]">
+              Kelola data master ruangan secara terpusat, cepat, dan siap
+              digunakan untuk inventarisasi.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <label className="cursor-pointer rounded-lg border border-[hsl(var(--slate-border))] bg-white px-4 py-2.5 text-sm font-semibold text-[hsl(var(--navy))] shadow-sm transition hover:border-blue-300 hover:bg-blue-50">
+              Impor Excel
+              <input
+                type="file"
+                accept=".xlsx,.csv"
+                className="sr-only"
+                onChange={imporExcel}
+              />
+            </label>
+            <button
+              onClick={bukaTambah}
+              className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700"
+            >
+              + Tambah ruang
+            </button>
+          </div>
+        </div>
+        <div className="mb-6 grid gap-4 lg:grid-cols-12">
+          <div className="rounded-2xl bg-[#1045FF] lg:col-span-5 p-6 text-white shadow-lg shadow-blue-900/10">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-blue-100">
+                  Ringkasan inventaris
+                </p>
+                <h2 className="mt-3 text-2xl font-bold">
+                  Data ruangan terkelola
+                </h2>
+                <p className="mt-2 max-w-md text-sm leading-6 text-blue-100">
+                  Pantau jumlah ruang, kategori, dan luas tercatat dari satu
+                  dashboard.
+                </p>
+              </div>
+              <span className="rounded-xl bg-white/15 px-3 py-2 text-xs font-bold">
+                2026
+              </span>
+            </div>
+            <div className="mt-6 flex items-end gap-2">
+              <span className="text-4xl font-black">{ruangan.length}</span>
+              <span className="pb-1 text-sm text-blue-100">
+                ruangan terdaftar
+              </span>
+            </div>
+          </div>
+          <div className="rounded-xl border border-[hsl(var(--slate-border))] bg-white p-5 shadow-sm lg:col-span-7">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-[hsl(var(--ink-muted))]">
+                  Distribusi kategori
+                </p>
+                <p className="mt-1 text-sm text-[hsl(var(--ink-muted))]">
+                  Jumlah data setiap nama ruang
+                </p>
+              </div>
+              <span className="text-xs font-bold text-[#1045FF]">
+                {distribusiNamaRuang.length} kategori
+              </span>
+            </div>
+            <div className="mt-5 flex h-56 items-end gap-2 overflow-x-auto pb-1 sm:gap-3">
+              {distribusiNamaRuang.length === 0 ? (
+                <p className="w-full self-center text-center text-sm text-[hsl(var(--ink-muted))]">
+                  Belum ada data ruang.
+                </p>
+              ) : (
+                distribusiNamaRuang.map(({ nama, jumlah }) => {
+                  const maksimum = Math.max(
+                    1,
+                    ...distribusiNamaRuang.map((item) => item.jumlah),
+                  );
+                  const tinggi = Math.max(
+                    8,
+                    Math.round((jumlah / maksimum) * 100),
+                  );
+                  return (
+                    <div
+                      key={nama}
+                      className="flex h-full min-w-12 flex-1 flex-col items-center justify-end gap-2"
+                    >
+                      <span className="text-[11px] font-bold text-[#1045FF]">
+                        {jumlah}
+                      </span>
+                      <div
+                        className="w-full max-w-10 rounded-t-md bg-[#1045FF] transition-all hover:bg-[#0d36cf]"
+                        style={{ height: `${tinggi}%` }}
+                        title={`${nama}: ${jumlah}`}
+                      />
+                      <span
+                        className="w-16 truncate text-center text-[10px] text-[hsl(var(--ink-muted))]"
+                        title={nama}
+                      >
+                        {nama}
+                      </span>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </div>
+        <div className="mb-6 grid gap-4 md:grid-cols-12">
+          <div className="grid gap-4 sm:grid-cols-2 md:col-span-6">
+            <Stat
+              label="Luas tercatat"
+              value={Math.round(
+                ruangan.reduce(
+                  (total, item) => total + (Number(item.luas) || 0),
+                  0,
+                ),
+              )}
+              caption="m² tercatat"
+            />
+            <Stat
+              label="Jenis ruang / kategori aktif"
+              value={pilihanJenis.length}
+              caption="Kategori unik"
+            />
+          </div>
+          <div className="hidden">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-[hsl(var(--ink-muted))]">
+                  Distribusi kategori
+                </p>
+                <p className="mt-1 text-sm text-[hsl(var(--ink-muted))]">
+                  Jumlah data untuk setiap nama ruang
+                </p>
+              </div>
+              <span className="text-xs font-bold text-[#1045FF]">
+                {distribusiNamaRuang.length} ruang
+              </span>
+            </div>
+            <div className="mt-5 flex min-h-56 flex-col justify-center gap-3">
+              {distribusiNamaRuang.length === 0 ? (
+                <p className="py-6 text-sm text-[hsl(var(--ink-muted))]">
+                  Belum ada data nama ruang.
+                </p>
+              ) : (
+                distribusiNamaRuang.map(({ nama, jumlah }) => {
+                  const persentase = Math.round(
+                    (jumlah /
+                      Math.max(
+                        1,
+                        Math.max(
+                          ...distribusiNamaRuang.map((item) => item.jumlah),
+                        ),
+                      )) *
+                      100,
+                  );
+                  return (
+                    <div
+                      key={nama}
+                      className="group grid grid-cols-[minmax(0,1.25fr)_minmax(6rem,2fr)_2rem] items-center gap-3 text-xs"
+                    >
+                      <span
+                        className="truncate font-semibold text-slate-700"
+                        title={nama}
+                      >
+                        {nama}
+                      </span>
+                      <div className="h-3 overflow-hidden rounded-full bg-slate-100">
+                        <div
+                          className="h-full rounded-full bg-[#1045FF] transition-all duration-500 group-hover:bg-[#0d36cf]"
+                          style={{ width: `${Math.max(8, persentase)}%` }}
+                        />
+                      </div>
+                      <span className="text-right font-bold text-[#1045FF]">
+                        {jumlah}
+                      </span>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+          <div className="rounded-xl border border-[hsl(var(--slate-border))] bg-white p-5 shadow-sm md:col-span-6">
+            <p className="text-xs font-bold uppercase tracking-wider text-[hsl(var(--ink-muted))]">
+              Aksi cepat
+            </p>
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <button
+                onClick={bukaTambah}
+                className="rounded-xl border border-blue-100 bg-blue-50 p-4 text-left text-sm font-bold text-[#1045FF] transition hover:bg-blue-100"
+              >
+                + Tambah ruang
+              </button>
+              <label className="cursor-pointer rounded-xl border border-slate-200 bg-slate-50 p-4 text-left text-sm font-bold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50">
+                Impor Excel
+                <input
+                  type="file"
+                  accept=".xlsx,.csv"
+                  className="sr-only"
+                  onChange={imporExcel}
+                />
+              </label>
+              <button
+                onClick={() => document.getElementById("ruang-search")?.focus()}
+                className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-left text-sm font-bold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50"
+              >
+                Cari data
+              </button>
+              <a
+                href="#qr"
+                className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-left text-sm font-bold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50"
+              >
+                Kode QR
+              </a>
+            </div>
+          </div>
+        </div>
+        {pesan && <Notice tone="info" text={pesan} />}{" "}
+        {kesalahan && <Notice tone="error" text={kesalahan} />}
+        <div className="overflow-hidden rounded-xl border border-[hsl(var(--slate-border))] bg-white shadow-sm">
+          <TableToolbar>
+            <div>
+              <h2 className="font-bold">Daftar ruang</h2>
+              <p className="mt-1 text-xs text-slate-500">
+                {hasil.length} hasil dari {ruangan.length} data
+              </p>
+            </div>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <input
+                id="ruang-search"
+                value={kataKunci}
+                onChange={(e) => {
+                  setKataKunci(e.target.value);
+                  setHalaman(1);
+                }}
+                placeholder="Cari nama atau jenis..."
+                className="rounded-xl border border-[hsl(var(--slate-border))] bg-slate-50 px-3 py-2.5 text-sm outline-none placeholder:text-slate-500 focus:border-cyan-300"
+              />
+              <select
+                value={jenis}
+                onChange={(e) => {
+                  setJenis(e.target.value);
+                  setHalaman(1);
+                }}
+                className="rounded-xl border border-[hsl(var(--slate-border))] px-3 py-2.5 text-sm outline-none focus:border-cyan-300"
+              >
+                <option>Semua jenis</option>
+                {pilihanJenis.map((item) => (
+                  <option key={item}>{item}</option>
+                ))}
+              </select>
+            </div>
+          </TableToolbar>
+          {memuat ? (
+            <LoadingSpinner label="Memuat data ruang..." />
+          ) : kesalahan && ruangan.length === 0 ? (
+            <ErrorState pesan={kesalahan} cobaLagi={() => void muatRuangan()} />
+          ) : tampak.length === 0 ? (
+            <EmptyState
+              judul="Belum ada data ruang"
+              pesan="Tambahkan data baru atau impor dari Excel."
+              aksi={<Tombol onClick={bukaTambah}>Tambah ruang</Tombol>}
+            />
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[700px] text-left text-sm">
+                <thead className="bg-[hsl(var(--surface-deep)/0.6)] text-[10px] uppercase tracking-wider text-[hsl(var(--ink-muted))]">
+                  <tr>
+                    <th className="px-5 py-4">Nama ruang</th>
+                    <th className="px-5 py-4">Jenis ruang</th>
+                    <th className="px-5 py-4">Luas</th>
+                    <th className="px-5 py-4 text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/10">
+                  {tampak.map((item) => (
+                    <tr
+                      key={item.id}
+                      className="transition hover:bg-white/[0.05]"
+                    >
+                      <td className="px-5 py-4 font-semibold">
+                        {item.nama_ruang}
+                      </td>
+                      <td className="px-5 py-4">
+                        {item.jenis_ruang ? (
+                          <StatusBadge warna="aktif">
+                            {item.jenis_ruang}
+                          </StatusBadge>
+                        ) : (
+                          <StatusBadge>Belum diisi</StatusBadge>
+                        )}
+                      </td>
+                      <td className="px-5 py-4 text-[hsl(var(--ink-muted))]">
+                        {item.luas != null ? `${item.luas} m²` : "Belum diisi"}
+                      </td>
+                      <td className="px-5 py-4">
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={() => setDetail(item)}
+                            className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-cyan-700 hover:bg-cyan-300/10"
+                          >
+                            Detail
+                          </button>
+                          <button
+                            onClick={() => bukaEdit(item)}
+                            className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-[hsl(var(--ink-muted))] hover:bg-white/10"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => setKonfirmasiHapus(item)}
+                            className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50"
+                          >
+                            Hapus
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          {hasil.length > 0 && (
+            <TablePagination
+              halaman={halaman}
+              totalHalaman={totalHalaman}
+              saatUbah={setHalaman}
+            />
+          )}
+        </div>
+      </section>
+      {modal && (
+        <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/60 p-4 backdrop-blur-md">
+          <form
+            onSubmit={simpan}
+            className="w-full max-w-md rounded-xl border border-[hsl(var(--slate-border))] bg-white p-6 shadow-xl"
+          >
+            <p className="text-xs font-bold uppercase tracking-wider text-cyan-700">
+              Master ruang
+            </p>
+            <h2 className="mt-2 text-2xl font-black">
+              {edit ? "Edit data ruang" : "Tambah ruang"}
+            </h2>
+            <div className="mt-6 flex flex-col gap-4">
+              <Field
+                label="Nama ruang"
+                value={form.nama_ruang}
+                onChange={(value) => setForm({ ...form, nama_ruang: value })}
+                required
+              />
+              <Field
+                label="Jenis ruang"
+                value={form.jenis_ruang}
+                onChange={(value) => setForm({ ...form, jenis_ruang: value })}
+              />
+              <Field
+                label="Luas ruang (m²)"
+                type="number"
+                value={form.luas}
+                onChange={(value) => setForm({ ...form, luas: value })}
+              />
+            </div>
+            <div className="mt-7 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setModal(false)}
+                className="rounded-xl border border-white/15 px-4 py-2.5 text-sm font-semibold"
+              >
+                Batal
+              </button>
+              <Tombol type="submit" memuat={menyimpan}>
+                Simpan data
+              </Tombol>
+            </div>
+          </form>
+        </div>
+      )}
+      <KonfirmasiDialog
+        terbuka={Boolean(konfirmasiHapus)}
+        pesan={
+          konfirmasiHapus ? `Hapus ruang “${konfirmasiHapus.nama_ruang}”?` : ""
+        }
+        labelKonfirmasi="Hapus"
+        saatBatal={() => setKonfirmasiHapus(null)}
+        saatKonfirmasi={() => konfirmasiHapus && void hapus(konfirmasiHapus)}
+      />
+      {detail && (
+        <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/60 p-4 backdrop-blur-md">
+          <div className="w-full max-w-md rounded-xl border border-[hsl(var(--slate-border))] bg-white p-6 shadow-xl">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-cyan-700">
+                  Detail ruang
+                </p>
+                <h2 className="mt-2 text-2xl font-black">
+                  {detail.nama_ruang}
+                </h2>
+              </div>
+              <button
+                onClick={() => setDetail(null)}
+                aria-label="Tutup detail"
+                className="text-2xl text-slate-500"
+              >
+                ×
+              </button>
+            </div>
+            <div className="mt-6 rounded-2xl bg-slate-50 p-4 text-sm">
+              <p className="text-slate-500">Jenis ruang</p>
+              <strong className="mt-1 block">
+                {detail.jenis_ruang || "Belum diisi"}
+              </strong>
+              <p className="mt-4 text-slate-500">Luas ruang</p>
+              <strong className="mt-1 block">
+                {detail.luas != null ? `${detail.luas} m²` : "Belum diisi"}
+              </strong>
+            </div>
+          </div>
+        </div>
+      )}
+    </main>
+  );
 }
 
-function Stat({ label, value, caption }: { label: string; value: number; caption: string }) { return <div className="rounded-xl border border-[hsl(var(--slate-border))] bg-white p-5 shadow-sm"><p className="text-xs font-bold uppercase tracking-wider text-[hsl(var(--ink-muted))]">{label}</p><p className="mt-3 text-3xl font-black text-[hsl(var(--foreground))]">{value}</p><p className="mt-1 text-xs text-[hsl(var(--ink-muted))]">{caption}</p></div> }
-function Notice({ tone, text }: { tone: 'info' | 'error'; text: string }) { return <div className={`mb-5 rounded-2xl border px-4 py-3 text-sm ${tone === 'error' ? 'border-rose-200 bg-rose-50 text-rose-700' : 'border-blue-200 bg-blue-50 text-blue-700'}`}>{text}</div> }
-function Field({ label, value, onChange, type = 'text', required = false }: { label: string; value: string; onChange: (value: string) => void; type?: string; required?: boolean }) { return <label className="text-sm font-semibold text-[hsl(var(--foreground))]">{label}<input required={required} type={type} min={type === 'number' ? '0' : undefined} step={type === 'number' ? '0.01' : undefined} value={value} onChange={(event) => onChange(event.target.value)} className="border border-[hsl(var(--slate-border))] bg-slate-50 shadow-sm focus:border-blue-500 mt-2 w-full rounded-xl px-3 py-2.5 font-normal"/></label> }
+function Stat({
+  label,
+  value,
+  caption,
+}: {
+  label: string;
+  value: number;
+  caption: string;
+}) {
+  return (
+    <div className="rounded-xl border border-[hsl(var(--slate-border))] bg-white p-5 shadow-sm">
+      <p className="text-xs font-bold uppercase tracking-wider text-[hsl(var(--ink-muted))]">
+        {label}
+      </p>
+      <p className="mt-3 text-3xl font-black text-[hsl(var(--foreground))]">
+        {value}
+      </p>
+      <p className="mt-1 text-xs text-[hsl(var(--ink-muted))]">{caption}</p>
+    </div>
+  );
+}
+function Notice({ tone, text }: { tone: "info" | "error"; text: string }) {
+  return (
+    <div
+      className={`mb-5 rounded-2xl border px-4 py-3 text-sm ${tone === "error" ? "border-rose-200 bg-rose-50 text-rose-700" : "border-blue-200 bg-blue-50 text-blue-700"}`}
+    >
+      {text}
+    </div>
+  );
+}
+function Field({
+  label,
+  value,
+  onChange,
+  type = "text",
+  required = false,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  type?: string;
+  required?: boolean;
+}) {
+  return (
+    <label className="text-sm font-semibold text-[hsl(var(--foreground))]">
+      {label}
+      <input
+        required={required}
+        type={type}
+        min={type === "number" ? "0" : undefined}
+        step={type === "number" ? "0.01" : undefined}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="border border-[hsl(var(--slate-border))] bg-slate-50 shadow-sm focus:border-blue-500 mt-2 w-full rounded-xl px-3 py-2.5 font-normal"
+      />
+    </label>
+  );
+}
 
-export default RoomDashboard
+export default RoomDashboard;

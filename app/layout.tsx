@@ -14,6 +14,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="id">
+      <head><link rel="stylesheet" href="https://site-assets.fontawesome.com/releases/v6.7.2/css/all.css" /></head>
       <body>
         <ToastProvider>{children}</ToastProvider>
       </body>

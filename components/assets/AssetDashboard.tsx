@@ -89,11 +89,11 @@ function DistribusiChart({
               key={item.label}
               className="flex h-full min-w-12 flex-1 flex-col items-center justify-end gap-2"
             >
-              <span className="text-[11px] font-bold text-[#1045FF]">
+              <span className="text-[11px] font-bold text-[#197a58]">
                 {item.jumlah}
               </span>
               <div
-                className={`w-full max-w-10 rounded-t-md ${warna === "blue" ? "bg-[#1045FF]" : "bg-slate-700"}`}
+                className={`w-full max-w-10 rounded-t-md ${warna === "blue" ? "bg-[#197a58]" : "bg-slate-700"}`}
                 style={{
                   height: `${Math.max(8, Math.round((item.jumlah / maksimum) * 100))}%`,
                 }}
@@ -368,14 +368,14 @@ if (!file.name.toLowerCase().endsWith(".csv")) throw new Error("Gunakan file CSV
   );
   return (
     <main className="min-h-screen bg-[#f5f7fb] text-[hsl(var(--foreground))]">
-      <header className="sticky top-0 z-10 bg-[#1045FF] text-white shadow-lg">
+      <header className="sticky top-0 z-10 bg-[#197a58] text-white shadow-lg">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3">
           <a href="/" className="flex items-center gap-3">
-            <span className="flex size-9 items-center justify-center rounded-lg bg-white font-black text-[#1045FF]">
+            <span className="flex size-9 items-center justify-center rounded-lg bg-white font-black text-[#197a58]">
               S
             </span>
             <span>
-              <span className="block text-[10px] font-bold uppercase tracking-widest text-blue-100">
+              <span className="block text-[10px] font-bold uppercase tracking-widest text-emerald-100">
                 SIMAN
               </span>
               <span className="block text-sm font-semibold">
@@ -386,18 +386,18 @@ if (!file.name.toLowerCase().endsWith(".csv")) throw new Error("Gunakan file CSV
           <nav className="hidden gap-1 text-sm font-semibold md:flex">
             <a
               href="/"
-              className="rounded-lg px-3 py-2 text-blue-100 hover:bg-white/15"
+              className="rounded-lg px-3 py-2 text-emerald-100 hover:bg-white/15"
             >
               Ruangan
             </a>
             <a
               href="/aset"
-              className="rounded-lg bg-white px-3 py-2 text-[#1045FF]"
+              className="rounded-lg bg-white px-3 py-2 text-[#197a58]"
             >
               Aset
             </a>
           </nav>
-          <span className="text-xs text-blue-100">Sistem aktif</span>
+          <span className="text-xs text-emerald-100">Sistem aktif</span>
         </div>
       </header>
       <section className="mx-auto max-w-7xl px-5 py-8">
@@ -415,7 +415,7 @@ if (!file.name.toLowerCase().endsWith(".csv")) throw new Error("Gunakan file CSV
         </div>
         <div className="mb-7 flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-blue-700">
+            <p className="text-xs font-bold uppercase tracking-widest text-emerald-700">
               Master inventaris
             </p>
             <h1 className="mt-2 text-3xl font-bold text-[#111111]">
@@ -440,7 +440,7 @@ if (!file.name.toLowerCase().endsWith(".csv")) throw new Error("Gunakan file CSV
         </div>
         {imporStatus && (
           <div
-            className="mb-5 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700"
+            className="mb-5 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700"
             role="status"
           >
             {imporStatus}
@@ -539,7 +539,7 @@ if (!file.name.toLowerCase().endsWith(".csv")) throw new Error("Gunakan file CSV
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {tampak.map((item) => (
-                    <tr key={item.id} className="hover:bg-blue-50/50">
+                    <tr key={item.id} className="hover:bg-emerald-50/50">
                       <td className="px-5 py-4 font-semibold">
                         {item.nama_barang || "Belum diisi"}
                       </td>
@@ -571,7 +571,7 @@ if (!file.name.toLowerCase().endsWith(".csv")) throw new Error("Gunakan file CSV
                         <div className="flex justify-end gap-2">
                           <button
                             onClick={() => void tampilkanQR(item)}
-                            className="rounded-lg px-2 py-1 text-xs font-semibold text-blue-700 hover:bg-blue-50"
+                            className="rounded-lg px-2 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-50"
                           >
                             QR
                           </button>
@@ -616,7 +616,7 @@ if (!file.name.toLowerCase().endsWith(".csv")) throw new Error("Gunakan file CSV
             onSubmit={simpan}
             className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-xl bg-white p-6 shadow-xl"
           >
-            <p className="text-xs font-bold uppercase tracking-wider text-blue-700">
+            <p className="text-xs font-bold uppercase tracking-wider text-emerald-700">
               Master aset
             </p>
             <h2 className="mt-2 text-2xl font-bold">
@@ -727,7 +727,7 @@ function QRModal({
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/60 p-4">
       <div className="w-full max-w-sm rounded-xl bg-white p-6 text-center shadow-xl">
-        <p className="text-xs font-bold uppercase tracking-wider text-blue-700">
+        <p className="text-xs font-bold uppercase tracking-wider text-emerald-700">
           Kode QR aset
         </p>
         <h2 className="mt-2 font-bold">{item.nama_barang || "Aset"}</h2>
@@ -744,7 +744,7 @@ function QRModal({
         <div className="mt-5 flex justify-center gap-2">
           <button
             onClick={onDownload}
-            className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white"
+            className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white"
           >
             Unduh
           </button>

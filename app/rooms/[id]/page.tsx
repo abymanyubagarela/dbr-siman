@@ -22,7 +22,7 @@ export default async function RoomDetail({
   return (
     <main className="min-h-screen bg-[#f6f8fb] p-6 text-slate-900">
       <div className="mx-auto max-w-xl rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-600">
+        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-600">
           SIMAN
         </p>
         <h1 className="mt-3 text-3xl font-bold">{room.name}</h1>
@@ -35,7 +35,7 @@ export default async function RoomDetail({
         </div>
         <a
           href="/"
-          className="mt-6 inline-block text-sm font-semibold text-blue-600 hover:underline"
+          className="mt-6 inline-block text-sm font-semibold text-emerald-600 hover:underline"
         >
           ← Kembali ke daftar ruangan
         </a>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { read, utils } from "xlsx";
+import { parseCsv } from "@/lib/csv";
 import { supabase, type MasterRuangan } from "@/lib/supabase";
 import {
   EmptyState,
@@ -192,11 +192,8 @@ export function RoomDashboard() {
     const file = event.target.files?.[0];
     if (!file) return;
     try {
-      const buku = read(await file.arrayBuffer(), { type: "array" });
-      const baris = utils.sheet_to_json<Record<string, unknown>>(
-        buku.Sheets[buku.SheetNames[0]],
-        { defval: "" },
-      );
+      if (!file.name.toLowerCase().endsWith(".csv")) throw new Error("Gunakan file CSV. Dukungan XLSX dihapus agar instalasi dependency tetap aman.");
+      const baris = parseCsv(await file.text());
       const data = baris.map((baris) => {
         const normal: Record<string, string> = {};
         Object.entries(baris).forEach(([k, v]) => {
@@ -247,7 +244,7 @@ export function RoomDashboard() {
       await muatRuangan();
     } catch {
       setKesalahan(
-        "File Excel tidak dapat dibaca. Gunakan format .xlsx atau .csv.",
+        "File CSV tidak dapat dibaca. Gunakan format .csv.",
       );
     } finally {
       event.target.value = "";
@@ -329,7 +326,7 @@ export function RoomDashboard() {
               Impor Excel
               <input
                 type="file"
-                accept=".xlsx,.csv"
+                accept=".csv"
                 className="sr-only"
                 onChange={imporExcel}
               />
@@ -513,7 +510,7 @@ export function RoomDashboard() {
                 Impor Excel
                 <input
                   type="file"
-                  accept=".xlsx,.csv"
+                  accept=".csv"
                   className="sr-only"
                   onChange={imporExcel}
                 />

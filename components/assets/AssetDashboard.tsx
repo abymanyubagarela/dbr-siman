@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { read, utils } from "xlsx";
+import { parseCsv } from "@/lib/csv";
 import { supabase, type MasterAset } from "@/lib/supabase";
 import {
   EmptyState,
@@ -292,11 +292,8 @@ export default function AssetDashboard() {
     if (!file) return;
     setImporStatus("Membaca file...");
     try {
-      const buku = read(await file.arrayBuffer(), { type: "array" });
-      const baris = utils.sheet_to_json<Record<string, unknown>>(
-        buku.Sheets[buku.SheetNames[0]],
-        { defval: "" },
-      );
+if (!file.name.toLowerCase().endsWith(".csv")) throw new Error("Gunakan file CSV. Dukungan XLSX dihapus agar instalasi dependency tetap aman.");
+  const baris = parseCsv(await file.text());
       if (!baris.length) throw new Error("File tidak memiliki baris data.");
       const normal = baris.map((row) =>
         Object.fromEntries(
@@ -433,7 +430,7 @@ export default function AssetDashboard() {
               Impor Excel
               <input
                 type="file"
-                accept=".xlsx,.csv"
+                accept=".csv"
                 className="sr-only"
                 onChange={imporExcel}
               />

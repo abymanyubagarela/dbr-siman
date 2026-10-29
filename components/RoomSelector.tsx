@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase, type MasterRuangan } from "@/lib/supabase";
+import { setPageLoading } from "@/components/ui/PageLoader";
 
 interface Props {
   onSelect: (roomId: string) => void;
@@ -17,6 +18,7 @@ export default function RoomSelector({
   const [rooms, setRooms] = useState<MasterRuangan[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  useEffect(() => { setPageLoading(loading || isLoading); }, [loading, isLoading]);
   const [newRoomName, setNewRoomName] = useState("");
   const [showNewRoomForm, setShowNewRoomForm] = useState(false);
 

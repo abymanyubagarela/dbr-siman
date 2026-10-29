@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase, type MasterAset, type MasterRuangan } from "@/lib/supabase";
+import { setPageLoading } from "@/components/ui/PageLoader";
 import {
   getInventoryAssets,
   getInventoryRooms,
@@ -26,6 +27,7 @@ export default function InventoryModule() {
   const [photo, setPhoto] = useState<File | null>(null);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  useEffect(() => { setPageLoading(busy); return () => setPageLoading(false); }, [busy]);
   const [newYear, setNewYear] = useState(new Date().getFullYear());
   const [showMissing, setShowMissing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);

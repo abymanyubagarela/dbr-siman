@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { setPageLoading } from "@/components/ui/PageLoader";
 
 interface Props {
   sessionId: string;
@@ -22,6 +23,7 @@ export default function PhotoCapture({
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  useEffect(() => { setPageLoading(uploading); }, [uploading]);
   const [error, setError] = useState("");
 
   useEffect(() => {

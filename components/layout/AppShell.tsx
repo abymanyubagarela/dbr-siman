@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { PageLoader, setPageLoading } from "@/components/ui/PageLoader";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: "▦" },
@@ -48,7 +49,7 @@ export function AppShell({
               <a
                 key={item.href}
                 href={item.href}
-                onClick={() => setSidebarTerbuka(false)}
+                onClick={() => { setSidebarTerbuka(false); setPageLoading(true); }}
                 className={`group flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition ${index === 0 && bagian === "Dashboard" ? "bg-[#dff2e9] font-bold text-[#176e4f]" : "text-slate-500 hover:bg-white hover:text-[#176e4f]"}`}
               >
                 <span className="w-5 text-center text-lg text-current">
@@ -126,6 +127,7 @@ export function AppShell({
             </div>
           </header>
           <main className="min-w-0">{children}</main>
+          <PageLoader />
         </div>
       </div>
     </div>

@@ -231,7 +231,7 @@ export default function InventoryModule() {
                 <p className="text-4xl font-black text-[#197a58]">
                   {records.length}
                 </p>
-                <p className="text-sm text-slate-500">aset unik ditemukan</p>
+                <p className="text-sm text-slate-500">Aset Unik Ditemukan</p>
               </div>
               <button
                 className="text-sm font-bold text-[#197a58]"
@@ -249,7 +249,7 @@ export default function InventoryModule() {
         <section className="mt-4 rounded-2xl border border-slate-200 bg-white p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="text-lg font-black">Scan aset</h2>
+              <h2 className="text-lg font-black">Scan Aset</h2>
               <p className="text-sm text-slate-500">
                 Alur cepat: foto, masukkan barcode, simpan otomatis.
               </p>
@@ -333,13 +333,13 @@ export default function InventoryModule() {
         </section>
         {showMissing && (
           <section className="mt-4 rounded-2xl border border-slate-200 bg-white p-6">
-            <h2 className="text-lg font-black">Aset ditemukan tahun ini</h2>
+            <h2 className="text-lg font-black">Aset Ditemukan Tahun Ini</h2>
             <div className="mt-4 overflow-x-auto">
               <table className="w-full min-w-[680px] text-left text-sm">
                 <thead className="border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
                   <tr>
                     <th className="pb-3">Aset</th>
-                    <th className="pb-3">Ruangan terakhir</th>
+                    <th className="pb-3">Ruangan Terakhir</th>
                     <th className="pb-3">Jumlah scan</th>
                     <th className="pb-3">Terakhir scan</th>
                   </tr>

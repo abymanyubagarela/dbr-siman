@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { PageLoader, setPageLoading } from "@/components/ui/PageLoader";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: "▦" },
@@ -36,7 +37,7 @@ export function AppShell({
             <div>
               <p className="text-lg font-bold tracking-tight">{judul}</p>
               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-                Asset management
+                Asset Management
               </p>
             </div>
           </div>
@@ -48,7 +49,7 @@ export function AppShell({
               <a
                 key={item.href}
                 href={item.href}
-                onClick={() => setSidebarTerbuka(false)}
+                onClick={() => { setSidebarTerbuka(false); setPageLoading(true); }}
                 className={`group flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition ${index === 0 && bagian === "Dashboard" ? "bg-[#dff2e9] font-bold text-[#176e4f]" : "text-slate-500 hover:bg-white hover:text-[#176e4f]"}`}
               >
                 <span className="w-5 text-center text-lg text-current">
@@ -81,15 +82,15 @@ export function AppShell({
             </a>
           </nav>
           <div className="mt-auto rounded-2xl bg-[#103d2d] p-4 text-white">
-            <p className="text-sm font-bold">Kelola lebih cepat</p>
+            <p className="text-sm font-bold">Kelola Lebih Cepat</p>
             <p className="mt-1 text-xs leading-5 text-emerald-100">
-              Semua data aset dalam satu tempat.
+              Semua Data Aset Dalam Satu Tempat.
             </p>
             <a
               href="/aset"
               className="mt-4 block rounded-full bg-[#2d9a6b] px-3 py-2 text-center text-xs font-bold"
             >
-              Buka data aset
+              Buka Data Aset
             </a>
           </div>
         </aside>
@@ -126,6 +127,7 @@ export function AppShell({
             </div>
           </header>
           <main className="min-w-0">{children}</main>
+          <PageLoader />
         </div>
       </div>
     </div>

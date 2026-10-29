@@ -23,7 +23,7 @@ export function RoomDashboard() {
   const [pesan, setPesan] = useState("");
   const [kesalahan, setKesalahan] = useState("");
   const [kataKunci, setKataKunci] = useState("");
-  const [jenis, setJenis] = useState("Semua jenis");
+  const [jenis, setJenis] = useState("Semua Jenis");
   const [halaman, setHalaman] = useState(1);
   const [form, setForm] = useState<FormRuangan>(kosong);
   const [edit, setEdit] = useState<MasterRuangan | null>(null);
@@ -89,7 +89,7 @@ export function RoomDashboard() {
           `${item.nama_ruang} ${item.jenis_ruang ?? ""}`
             .toLowerCase()
             .includes(kataKunci.toLowerCase()) &&
-          (jenis === "Semua jenis" || item.jenis_ruang === jenis),
+          (jenis === "Semua Jenis" || item.jenis_ruang === jenis),
       ),
     [ruangan, kataKunci, jenis],
   );
@@ -121,7 +121,7 @@ export function RoomDashboard() {
         ? Number(form.luas.replace(",", "."))
         : null;
       if (!form.nama_ruang.trim()) {
-        setKesalahan("Nama ruang wajib diisi.");
+        setKesalahan("Nama Ruang wajib diisi.");
         return;
       }
       if (
@@ -373,7 +373,7 @@ export function RoomDashboard() {
         <div className="mb-6 grid gap-4 md:grid-cols-12">
           <div className="grid gap-4 sm:grid-cols-2 md:col-span-6">
             <Stat
-              label="Luas tercatat"
+              label="Luas Tercatat"
               value={Math.round(
                 ruangan.reduce(
                   (total, item) => total + (Number(item.luas) || 0),
@@ -383,7 +383,7 @@ export function RoomDashboard() {
               caption="m² tercatat"
             />
             <Stat
-              label="Jenis ruang / kategori aktif"
+              label="Jenis Ruang / Kategori Aktif"
               value={pilihanJenis.length}
               caption="Kategori unik"
             />
@@ -485,7 +485,7 @@ export function RoomDashboard() {
         <div className="overflow-hidden rounded-xl border border-[hsl(var(--slate-border))] bg-white shadow-sm">
           <TableToolbar>
             <div>
-              <h2 className="font-bold">Daftar ruang</h2>
+              <h2 className="font-bold">Daftar Ruang</h2>
               <p className="mt-1 text-xs text-slate-500">
                 {hasil.length} hasil dari {ruangan.length} data
               </p>
@@ -509,7 +509,7 @@ export function RoomDashboard() {
                 }}
                 className="rounded-xl border border-[hsl(var(--slate-border))] px-3 py-2.5 text-sm outline-none focus:border-cyan-300"
               >
-                <option>Semua jenis</option>
+                <option>Semua Jenis</option>
                 {pilihanJenis.map((item) => (
                   <option key={item}>{item}</option>
                 ))}
@@ -531,7 +531,7 @@ export function RoomDashboard() {
               <table className="w-full min-w-[700px] text-left text-sm">
                 <thead className="bg-[hsl(var(--surface-deep)/0.6)] text-[10px] uppercase tracking-wider text-[hsl(var(--ink-muted))]">
                   <tr>
-                    <th className="px-5 py-4">Nama ruang</th>
+                    <th className="px-5 py-4">Nama Ruang</th>
                     <th className="px-5 py-4">Jenis ruang</th>
                     <th className="px-5 py-4">Luas</th>
                     <th className="px-5 py-4 text-right">Aksi</th>
@@ -609,7 +609,7 @@ export function RoomDashboard() {
             </h2>
             <div className="mt-6 flex flex-col gap-4">
               <Field
-                label="Nama ruang"
+                label="Nama Ruang"
                 value={form.nama_ruang}
                 onChange={(value) => setForm({ ...form, nama_ruang: value })}
                 required

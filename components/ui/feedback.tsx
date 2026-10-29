@@ -80,7 +80,7 @@ export function Spinner({ className = "" }: { className?: string }) {
   );
 }
 export function LoadingSpinner({
-  label = "Memuat data...",
+  label = "Memuat Data...",
 }: {
   label?: string;
 }) {

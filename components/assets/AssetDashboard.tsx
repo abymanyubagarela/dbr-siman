@@ -118,7 +118,7 @@ export default function AssetDashboard() {
   const [kesalahan, setKesalahan] = useState("");
   const [pesan, setPesan] = useState("");
   const [kataKunci, setKataKunci] = useState("");
-  const [jenisBmn, setJenisBmn] = useState("Semua jenis BMN");
+  const [jenisBmn, setJenisBmn] = useState("Semua Jenis BMN");
   const [halaman, setHalaman] = useState(1);
   const [totalAset, setTotalAset] = useState(0);
   const [form, setForm] = useState<FormAset>(kosong);
@@ -179,7 +179,7 @@ export default function AssetDashboard() {
           `${item.nama_barang ?? ""} ${item.kode_barang ?? ""} ${item.nup ?? ""} ${item.merk ?? ""}`
             .toLowerCase()
             .includes(kataKunci.toLowerCase()) &&
-          (jenisBmn === "Semua jenis BMN" || item.jenis_bmn === jenisBmn),
+          (jenisBmn === "Semua Jenis BMN" || item.jenis_bmn === jenisBmn),
       ),
     [aset, kataKunci, jenisBmn],
   );
@@ -211,7 +211,7 @@ export default function AssetDashboard() {
     setMenyimpan(true);
     try {
       if (!form.nama_barang?.trim()) {
-        setKesalahan("Nama barang wajib diisi.");
+        setKesalahan("Nama Barang wajib diisi.");
         return;
       }
       const data = {
@@ -267,8 +267,8 @@ export default function AssetDashboard() {
     return `https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=2&data=${encodeURIComponent(qrData)}`;
   };
   const tampilkanQR = async (item: MasterAset) => {
-    const dataUrl = await bacaQR(item);
-    setDetail({ ...item, kode_register: dataUrl });
+    await bacaQR(item);
+    setDetail(item);
   };
   const unduhQR = async (item: MasterAset) => {
     const dataUrl = await bacaQR(item);
@@ -371,12 +371,12 @@ if (!file.name.toLowerCase().endsWith(".csv")) throw new Error("Gunakan file CSV
       <section className="mx-auto max-w-7xl px-5 py-8">
         <div className="mb-6 grid gap-4 lg:grid-cols-2">
           <DistribusiChart
-            judul="Jumlah barang per jenis"
+            judul="Jumlah Barang Per Jenis"
             data={jumlahPerJenis}
             warna="blue"
           />
           <DistribusiChart
-            judul="Jumlah barang per kondisi"
+            judul="Jumlah Barang Per Kondisi"
             data={jumlahPerKondisi}
             warna="slate"
           />
@@ -452,7 +452,7 @@ if (!file.name.toLowerCase().endsWith(".csv")) throw new Error("Gunakan file CSV
         <div className="overflow-hidden rounded-xl border border-[hsl(var(--slate-border))] bg-white shadow-sm">
           <TableToolbar>
             <div>
-              <h2 className="font-bold">Daftar aset</h2>
+              <h2 className="font-bold">Daftar Aset</h2>
               <p className="mt-1 text-xs text-slate-500">
                 {hasil.length} hasil dari {aset.length} data
               </p>
@@ -475,7 +475,7 @@ if (!file.name.toLowerCase().endsWith(".csv")) throw new Error("Gunakan file CSV
                 }}
                 className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm"
               >
-                <option>Semua jenis BMN</option>
+                <option>Semua Jenis BMN</option>
                 {jenisBmnPilihan.map((item) => (
                   <option key={item}>{item}</option>
                 ))}
@@ -497,7 +497,7 @@ if (!file.name.toLowerCase().endsWith(".csv")) throw new Error("Gunakan file CSV
               <table className="w-full min-w-[1100px] text-left text-sm">
                 <thead className="bg-slate-50 text-[10px] uppercase tracking-wider text-slate-500">
                   <tr>
-                    <th className="px-5 py-4">Nama barang</th>
+                    <th className="px-5 py-4">Nama Barang</th>
                     <th className="px-5 py-4">Kode barang</th>
                     <th className="px-5 py-4">NUP</th>
                     <th className="px-5 py-4">Kondisi</th>
@@ -595,7 +595,7 @@ if (!file.name.toLowerCase().endsWith(".csv")) throw new Error("Gunakan file CSV
                 jenis_bmn: "Jenis BMN",
                 kode_barang: "Kode barang",
                 nup: "NUP",
-                nama_barang: "Nama barang",
+                nama_barang: "Nama Barang",
                 merk: "Merk",
                 tipe: "Tipe",
                 kondisi: "Kondisi",
@@ -691,7 +691,7 @@ function QRModal({
     setSrc(
       `https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=2&data=${encodeURIComponent(item.kode_register?.trim() || item.id)}`,
     );
-  }, [item.id]);
+  }, [item.id, item.kode_register]);
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/60 p-4">
       <div className="w-full max-w-sm rounded-xl bg-white p-6 text-center shadow-xl">
@@ -708,7 +708,7 @@ function QRModal({
         ) : (
           <LoadingSpinner label="Membuat QR..." />
         )}
-        <p className="mt-3 break-all text-xs text-slate-500">ID: {item.id}</p>
+        <p className="mt-3 break-all text-xs text-slate-500">Kode Register: {item.kode_register || "Belum Diisi"}</p>
         <div className="mt-5 flex justify-center gap-2">
           <button
             onClick={onDownload}

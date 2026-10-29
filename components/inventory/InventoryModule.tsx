@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase, type MasterAset, type MasterRuangan } from "@/lib/supabase";
+import { setPageLoading } from "@/components/ui/PageLoader";
+import { CameraBarcodeScanner } from "@/components/inventory/CameraBarcodeScanner";
 import {
   getInventoryAssets,
   getInventoryRooms,
@@ -26,6 +28,7 @@ export default function InventoryModule() {
   const [photo, setPhoto] = useState<File | null>(null);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  useEffect(() => { setPageLoading(busy); return () => setPageLoading(false); }, [busy]);
   const [newYear, setNewYear] = useState(new Date().getFullYear());
   const [showMissing, setShowMissing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -79,10 +82,10 @@ export default function InventoryModule() {
     setMessage(result.error?.message ?? "Tahun inventaris dikunci.");
     await reload();
   };
-  const findAsset = async () => {
-    if (!barcode.trim()) return;
+  const findAsset = async (scannedValue = barcode) => {
+    if (!scannedValue.trim()) return;
     setBusy(true);
-    const result = await resolveAsset(barcode.trim());
+    const result = await resolveAsset(scannedValue.trim());
     setBusy(false);
     if (result.error) return setMessage(result.error.message);
     if (!result.data?.length)
@@ -231,7 +234,7 @@ export default function InventoryModule() {
                 <p className="text-4xl font-black text-[#197a58]">
                   {records.length}
                 </p>
-                <p className="text-sm text-slate-500">aset unik ditemukan</p>
+                <p className="text-sm text-slate-500">Aset Unik Ditemukan</p>
               </div>
               <button
                 className="text-sm font-bold text-[#197a58]"
@@ -249,7 +252,7 @@ export default function InventoryModule() {
         <section className="mt-4 rounded-2xl border border-slate-200 bg-white p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="text-lg font-black">Scan aset</h2>
+              <h2 className="text-lg font-black">Scan Aset</h2>
               <p className="text-sm text-slate-500">
                 Alur cepat: foto, masukkan barcode, simpan otomatis.
               </p>
@@ -284,8 +287,12 @@ export default function InventoryModule() {
             </div>
             <div>
               <label className="text-xs font-bold uppercase tracking-widest text-slate-500">
-                Barcode / kode register
+                Barcode / Kode Register
               </label>
+              <div className="mt-2">
+                <CameraBarcodeScanner disabled={busy} onDetected={(value) => { setBarcode(value); void findAsset(value); }} />
+              </div>
+              <p className="mt-4 text-xs font-semibold uppercase tracking-widest text-slate-400">Input Manual / USB Scanner</p>
               <div className="mt-2 flex gap-2">
                 <input
                   ref={inputRef}
@@ -299,7 +306,7 @@ export default function InventoryModule() {
                     )
                       void findAsset();
                   }}
-                  placeholder="Scan dengan USB scanner"
+                  placeholder="Masukkan kode register secara manual"
                   className="min-w-0 flex-1 rounded-xl border border-slate-200 px-3 py-3 text-sm"
                 />
                 <button
@@ -333,13 +340,13 @@ export default function InventoryModule() {
         </section>
         {showMissing && (
           <section className="mt-4 rounded-2xl border border-slate-200 bg-white p-6">
-            <h2 className="text-lg font-black">Aset ditemukan tahun ini</h2>
+            <h2 className="text-lg font-black">Aset Ditemukan Tahun Ini</h2>
             <div className="mt-4 overflow-x-auto">
               <table className="w-full min-w-[680px] text-left text-sm">
                 <thead className="border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
                   <tr>
                     <th className="pb-3">Aset</th>
-                    <th className="pb-3">Ruangan terakhir</th>
+                    <th className="pb-3">Ruangan Terakhir</th>
                     <th className="pb-3">Jumlah scan</th>
                     <th className="pb-3">Terakhir scan</th>
                   </tr>

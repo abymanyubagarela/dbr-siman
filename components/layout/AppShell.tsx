@@ -23,8 +23,9 @@ export function AppShell({
     <div className="min-h-screen bg-[#eef0f2] p-0 text-[#111111] sm:p-4 lg:p-8">
       <div className="mx-auto flex min-h-[calc(100vh-2rem)] max-w-[1540px] overflow-hidden rounded-none bg-[#f8f9f8] shadow-[0_20px_70px_rgba(22,32,28,0.12)] sm:rounded-[28px] lg:min-h-[calc(100vh-4rem)]">
         <aside className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-slate-200 bg-[#f8f9f8] px-5 py-7 transition-transform sm:absolute lg:relative lg:translate-x-0 ${sidebarTerbuka ? "translate-x-0" : "-translate-x-full"}`}>
-          <div className="flex items-center px-2">
-            <img src="/images/openlogistics-logo.jpg" alt="OpenLogistics" className="h-14 w-full max-w-[180px] object-contain object-left mix-blend-multiply" />
+          <div className="flex items-center gap-3 px-2">
+            <span aria-hidden="true" className="flex size-10 items-center justify-center rounded-full border-[3px] border-[#197a58] text-2xl font-bold text-[#197a58]">▱</span>
+            <div><p className="text-lg font-bold tracking-tight">{judul}</p><p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Asset management</p></div>
           </div>
           <p className="mt-12 px-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400">Menu</p>
           <nav className="mt-3 flex flex-col gap-1" aria-label="Navigasi utama">

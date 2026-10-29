@@ -368,38 +368,6 @@ if (!file.name.toLowerCase().endsWith(".csv")) throw new Error("Gunakan file CSV
   );
   return (
     <main className="min-h-screen bg-[#f5f7fb] text-[hsl(var(--foreground))]">
-      <header className="sticky top-0 z-10 bg-[#197a58] text-white shadow-lg">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3">
-          <a href="/" className="flex items-center gap-3">
-            <span className="flex size-9 items-center justify-center rounded-lg bg-white font-black text-[#197a58]">
-              S
-            </span>
-            <span>
-              <span className="block text-[10px] font-bold uppercase tracking-widest text-emerald-100">
-                SIMAN
-              </span>
-              <span className="block text-sm font-semibold">
-                Sistem Inventaris Aset Negara
-              </span>
-            </span>
-          </a>
-          <nav className="hidden gap-1 text-sm font-semibold md:flex">
-            <a
-              href="/"
-              className="rounded-lg px-3 py-2 text-emerald-100 hover:bg-white/15"
-            >
-              Ruangan
-            </a>
-            <a
-              href="/aset"
-              className="rounded-lg bg-white px-3 py-2 text-[#197a58]"
-            >
-              Aset
-            </a>
-          </nav>
-          <span className="text-xs text-emerald-100">Sistem aktif</span>
-        </div>
-      </header>
       <section className="mx-auto max-w-7xl px-5 py-8">
         <div className="mb-6 grid gap-4 lg:grid-cols-2">
           <DistribusiChart

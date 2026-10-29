@@ -254,56 +254,6 @@ export function RoomDashboard() {
   return (
     <main className="min-h-screen bg-[#f5f7fb] text-[hsl(var(--foreground))]">
       <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(135deg,rgba(16,69,255,0.035),transparent_32%)]" />
-      <header className="sticky top-0 z-10 border-b border-white/15 bg-[#197a58] text-white shadow-lg shadow-emerald-900/10">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-5 py-3 lg:px-8">
-          <div className="flex items-center gap-3">
-            <div className="flex size-9 items-center justify-center rounded-lg bg-white font-black text-[#197a58]">
-              S
-            </div>
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-100">
-                SIMAN
-              </p>
-              <p className="text-sm font-semibold">
-                Sistem Inventaris Aset Negara
-              </p>
-            </div>
-          </div>
-          <nav
-            aria-label="Navigasi utama"
-            className="hidden items-center gap-1 text-sm font-semibold md:flex"
-          >
-            <a
-              className="rounded-lg bg-white px-3 py-2 text-[#197a58]"
-              href="#ruangan"
-            >
-              Ruangan
-            </a>
-            <a
-              className="rounded-lg px-3 py-2 text-emerald-100 transition hover:bg-white/15 hover:text-white"
-              href="#aset"
-            >
-              Aset
-            </a>
-            <a
-              className="rounded-lg px-3 py-2 text-emerald-100 transition hover:bg-white/15 hover:text-white"
-              href="#impor"
-            >
-              Impor Excel
-            </a>
-            <a
-              className="rounded-lg px-3 py-2 text-emerald-100 transition hover:bg-white/15 hover:text-white"
-              href="#qr"
-            >
-              Kode QR
-            </a>
-          </nav>
-          <div className="flex items-center gap-2 text-xs text-emerald-100">
-            <span className="size-2 rounded-full bg-emerald-400" />
-            Sistem aktif
-          </div>
-        </div>
-      </header>
       <section
         id="ruangan"
         className="relative mx-auto max-w-7xl px-5 py-8 lg:px-5 lg:py-10"
@@ -313,8 +263,8 @@ export function RoomDashboard() {
             <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-emerald-700">
               Pusat kendali aset
             </p>
-            <h1 className="text-3xl font-bold tracking-tight text-[hsl(var(--navy))] sm:text-4xl">
-              Manajemen ruang
+            <h1 className="text-3xl font-bold tracking-tight text-[hsl(var(--black))] sm:text-4xl">
+              Dashboard Manajemen Aset
             </h1>
             <p className="mt-2 max-w-xl text-sm leading-6 text-[hsl(var(--ink-muted))]">
               Kelola data master ruangan secara terpusat, cepat, dan siap

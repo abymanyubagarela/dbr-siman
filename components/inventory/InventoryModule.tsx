@@ -108,26 +108,12 @@ export default function InventoryModule() {
         contentType: photo.type || "image/jpeg",
         upsert: false,
       });
-    console.log("UPLOAD RESULT:", {
-      path: finalPath,
-      error: upload.error,
-      data: upload.data,
-    });
-
-
+   
     if (upload.error) {
       setBusy(false);
       return setMessage(`Foto gagal diunggah: ${upload.error.message}`);
     }
     const result = await recordScan(yearId, asset.id, roomId, finalPath);
-
-    console.log("RECORD SCAN ERROR:", {
-      error: result.error,
-      message: result.error?.message,
-      code: result.error?.code,
-      details: result.error?.details,
-      hint: result.error?.hint,
-    });
 
     if (result.error) {
       setBusy(false);
@@ -153,7 +139,7 @@ export default function InventoryModule() {
               SIMAN / Inventarisasi tahunan
             </p>
             <h1 className="mt-2 text-3xl font-black">
-              Pemeriksaan aset berbasis ruangan
+              Pemeriksaan Aset Berbasis Barang Ruang
             </h1>
             <p className="mt-2 text-sm text-slate-500">
               Foto dulu, scan berikutnya. Setiap foto tersimpan sebagai histori

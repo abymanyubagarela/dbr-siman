@@ -123,8 +123,8 @@ export default function QRScanner({ sessionId, onScanned }: Props) {
         )}
       </div>
 
-      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-        <p className="text-sm text-blue-800 dark:text-blue-200">
+      <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg p-4">
+        <p className="text-sm text-emerald-800 dark:text-emerald-200">
           <strong>Tip:</strong> Scan QR codes from assets or manually enter
           asset IDs. After scanning, you'll be prompted to take a photo.
         </p>

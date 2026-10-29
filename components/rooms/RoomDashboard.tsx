@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { read, utils } from "xlsx";
+import { parseCsv } from "@/lib/csv";
 import { supabase, type MasterRuangan } from "@/lib/supabase";
 import {
   EmptyState,
@@ -192,11 +192,8 @@ export function RoomDashboard() {
     const file = event.target.files?.[0];
     if (!file) return;
     try {
-      const buku = read(await file.arrayBuffer(), { type: "array" });
-      const baris = utils.sheet_to_json<Record<string, unknown>>(
-        buku.Sheets[buku.SheetNames[0]],
-        { defval: "" },
-      );
+      if (!file.name.toLowerCase().endsWith(".csv")) throw new Error("Gunakan file CSV. Dukungan XLSX dihapus agar instalasi dependency tetap aman.");
+      const baris = parseCsv(await file.text());
       const data = baris.map((baris) => {
         const normal: Record<string, string> = {};
         Object.entries(baris).forEach(([k, v]) => {
@@ -247,7 +244,7 @@ export function RoomDashboard() {
       await muatRuangan();
     } catch {
       setKesalahan(
-        "File Excel tidak dapat dibaca. Gunakan format .xlsx atau .csv.",
+        "File CSV tidak dapat dibaca. Gunakan format .csv.",
       );
     } finally {
       event.target.value = "";
@@ -257,14 +254,14 @@ export function RoomDashboard() {
   return (
     <main className="min-h-screen bg-[#f5f7fb] text-[hsl(var(--foreground))]">
       <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(135deg,rgba(16,69,255,0.035),transparent_32%)]" />
-      <header className="sticky top-0 z-10 border-b border-white/15 bg-[#1045FF] text-white shadow-lg shadow-blue-900/10">
+      <header className="sticky top-0 z-10 border-b border-white/15 bg-[#197a58] text-white shadow-lg shadow-emerald-900/10">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-5 py-3 lg:px-8">
           <div className="flex items-center gap-3">
-            <div className="flex size-9 items-center justify-center rounded-lg bg-white font-black text-[#1045FF]">
+            <div className="flex size-9 items-center justify-center rounded-lg bg-white font-black text-[#197a58]">
               S
             </div>
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-100">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-100">
                 SIMAN
               </p>
               <p className="text-sm font-semibold">
@@ -277,31 +274,31 @@ export function RoomDashboard() {
             className="hidden items-center gap-1 text-sm font-semibold md:flex"
           >
             <a
-              className="rounded-lg bg-white px-3 py-2 text-[#1045FF]"
+              className="rounded-lg bg-white px-3 py-2 text-[#197a58]"
               href="#ruangan"
             >
               Ruangan
             </a>
             <a
-              className="rounded-lg px-3 py-2 text-blue-100 transition hover:bg-white/15 hover:text-white"
+              className="rounded-lg px-3 py-2 text-emerald-100 transition hover:bg-white/15 hover:text-white"
               href="#aset"
             >
               Aset
             </a>
             <a
-              className="rounded-lg px-3 py-2 text-blue-100 transition hover:bg-white/15 hover:text-white"
+              className="rounded-lg px-3 py-2 text-emerald-100 transition hover:bg-white/15 hover:text-white"
               href="#impor"
             >
               Impor Excel
             </a>
             <a
-              className="rounded-lg px-3 py-2 text-blue-100 transition hover:bg-white/15 hover:text-white"
+              className="rounded-lg px-3 py-2 text-emerald-100 transition hover:bg-white/15 hover:text-white"
               href="#qr"
             >
               Kode QR
             </a>
           </nav>
-          <div className="flex items-center gap-2 text-xs text-blue-100">
+          <div className="flex items-center gap-2 text-xs text-emerald-100">
             <span className="size-2 rounded-full bg-emerald-400" />
             Sistem aktif
           </div>
@@ -313,7 +310,7 @@ export function RoomDashboard() {
       >
         <div className="mb-7 flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
           <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-blue-700">
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-emerald-700">
               Pusat kendali aset
             </p>
             <h1 className="text-3xl font-bold tracking-tight text-[hsl(var(--navy))] sm:text-4xl">
@@ -325,34 +322,34 @@ export function RoomDashboard() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <label className="cursor-pointer rounded-lg border border-[hsl(var(--slate-border))] bg-white px-4 py-2.5 text-sm font-semibold text-[hsl(var(--navy))] shadow-sm transition hover:border-blue-300 hover:bg-blue-50">
+            <label className="cursor-pointer rounded-lg border border-[hsl(var(--slate-border))] bg-white px-4 py-2.5 text-sm font-semibold text-[hsl(var(--navy))] shadow-sm transition hover:border-emerald-300 hover:bg-emerald-50">
               Impor Excel
               <input
                 type="file"
-                accept=".xlsx,.csv"
+                accept=".csv"
                 className="sr-only"
                 onChange={imporExcel}
               />
             </label>
             <button
               onClick={bukaTambah}
-              className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700"
+              className="rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700"
             >
               + Tambah ruang
             </button>
           </div>
         </div>
         <div className="mb-6 grid gap-4 lg:grid-cols-12">
-          <div className="rounded-2xl bg-[#1045FF] lg:col-span-5 p-6 text-white shadow-lg shadow-blue-900/10">
+          <div className="rounded-2xl bg-[#197a58] lg:col-span-5 p-6 text-white shadow-lg shadow-emerald-900/10">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-blue-100">
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-100">
                   Ringkasan inventaris
                 </p>
                 <h2 className="mt-3 text-2xl font-bold">
                   Data ruangan terkelola
                 </h2>
-                <p className="mt-2 max-w-md text-sm leading-6 text-blue-100">
+                <p className="mt-2 max-w-md text-sm leading-6 text-emerald-100">
                   Pantau jumlah ruang, kategori, dan luas tercatat dari satu
                   dashboard.
                 </p>
@@ -363,7 +360,7 @@ export function RoomDashboard() {
             </div>
             <div className="mt-6 flex items-end gap-2">
               <span className="text-4xl font-black">{ruangan.length}</span>
-              <span className="pb-1 text-sm text-blue-100">
+              <span className="pb-1 text-sm text-emerald-100">
                 ruangan terdaftar
               </span>
             </div>
@@ -378,7 +375,7 @@ export function RoomDashboard() {
                   Jumlah data setiap nama ruang
                 </p>
               </div>
-              <span className="text-xs font-bold text-[#1045FF]">
+              <span className="text-xs font-bold text-[#197a58]">
                 {distribusiNamaRuang.length} kategori
               </span>
             </div>
@@ -402,11 +399,11 @@ export function RoomDashboard() {
                       key={nama}
                       className="flex h-full min-w-12 flex-1 flex-col items-center justify-end gap-2"
                     >
-                      <span className="text-[11px] font-bold text-[#1045FF]">
+                      <span className="text-[11px] font-bold text-[#197a58]">
                         {jumlah}
                       </span>
                       <div
-                        className="w-full max-w-10 rounded-t-md bg-[#1045FF] transition-all hover:bg-[#0d36cf]"
+                        className="w-full max-w-10 rounded-t-md bg-[#197a58] transition-all hover:bg-[#11523c]"
                         style={{ height: `${tinggi}%` }}
                         title={`${nama}: ${jumlah}`}
                       />
@@ -451,7 +448,7 @@ export function RoomDashboard() {
                   Jumlah data untuk setiap nama ruang
                 </p>
               </div>
-              <span className="text-xs font-bold text-[#1045FF]">
+              <span className="text-xs font-bold text-[#197a58]">
                 {distribusiNamaRuang.length} ruang
               </span>
             </div>
@@ -485,11 +482,11 @@ export function RoomDashboard() {
                       </span>
                       <div className="h-3 overflow-hidden rounded-full bg-slate-100">
                         <div
-                          className="h-full rounded-full bg-[#1045FF] transition-all duration-500 group-hover:bg-[#0d36cf]"
+                          className="h-full rounded-full bg-[#197a58] transition-all duration-500 group-hover:bg-[#11523c]"
                           style={{ width: `${Math.max(8, persentase)}%` }}
                         />
                       </div>
-                      <span className="text-right font-bold text-[#1045FF]">
+                      <span className="text-right font-bold text-[#197a58]">
                         {jumlah}
                       </span>
                     </div>
@@ -505,28 +502,28 @@ export function RoomDashboard() {
             <div className="mt-4 grid grid-cols-2 gap-3">
               <button
                 onClick={bukaTambah}
-                className="rounded-xl border border-blue-100 bg-blue-50 p-4 text-left text-sm font-bold text-[#1045FF] transition hover:bg-blue-100"
+                className="rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-left text-sm font-bold text-[#197a58] transition hover:bg-emerald-100"
               >
                 + Tambah ruang
               </button>
-              <label className="cursor-pointer rounded-xl border border-slate-200 bg-slate-50 p-4 text-left text-sm font-bold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50">
+              <label className="cursor-pointer rounded-xl border border-slate-200 bg-slate-50 p-4 text-left text-sm font-bold text-slate-700 transition hover:border-emerald-200 hover:bg-emerald-50">
                 Impor Excel
                 <input
                   type="file"
-                  accept=".xlsx,.csv"
+                  accept=".csv"
                   className="sr-only"
                   onChange={imporExcel}
                 />
               </label>
               <button
                 onClick={() => document.getElementById("ruang-search")?.focus()}
-                className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-left text-sm font-bold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50"
+                className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-left text-sm font-bold text-slate-700 transition hover:border-emerald-200 hover:bg-emerald-50"
               >
                 Cari data
               </button>
               <a
                 href="#qr"
-                className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-left text-sm font-bold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50"
+                className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-left text-sm font-bold text-slate-700 transition hover:border-emerald-200 hover:bg-emerald-50"
               >
                 Kode QR
               </a>
@@ -764,7 +761,7 @@ function Stat({
 function Notice({ tone, text }: { tone: "info" | "error"; text: string }) {
   return (
     <div
-      className={`mb-5 rounded-2xl border px-4 py-3 text-sm ${tone === "error" ? "border-rose-200 bg-rose-50 text-rose-700" : "border-blue-200 bg-blue-50 text-blue-700"}`}
+      className={`mb-5 rounded-2xl border px-4 py-3 text-sm ${tone === "error" ? "border-rose-200 bg-rose-50 text-rose-700" : "border-emerald-200 bg-emerald-50 text-emerald-700"}`}
     >
       {text}
     </div>
@@ -793,7 +790,7 @@ function Field({
         step={type === "number" ? "0.01" : undefined}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="border border-[hsl(var(--slate-border))] bg-slate-50 shadow-sm focus:border-blue-500 mt-2 w-full rounded-xl px-3 py-2.5 font-normal"
+        className="border border-[hsl(var(--slate-border))] bg-slate-50 shadow-sm focus:border-emerald-500 mt-2 w-full rounded-xl px-3 py-2.5 font-normal"
       />
     </label>
   );

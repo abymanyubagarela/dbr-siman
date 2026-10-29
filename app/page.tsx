@@ -1,10 +1,6 @@
 import RoomDashboard from "@/components/rooms/RoomDashboard";
-import { ToastProvider } from "@/components/ui/feedback";
+import { AppShell } from "@/components/layout/AppShell";
 
 export default function Home() {
-  return (
-    <ToastProvider>
-      <RoomDashboard />
-    </ToastProvider>
-  );
+  return <AppShell><RoomDashboard /></AppShell>;
 }

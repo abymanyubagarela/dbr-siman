@@ -60,7 +60,7 @@ const warnaToast: Record<NadaToast, string> = {
   sukses: "border-emerald-200",
   galat: "border-rose-200",
   peringatan: "border-amber-200",
-  info: "border-blue-200",
+  info: "border-emerald-200",
 };
 
 export function useToast() {
@@ -166,7 +166,7 @@ export function ErrorState({
         <button
           type="button"
           onClick={cobaLagi}
-          className="rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+          className="rounded-md bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
         >
           Coba lagi
         </button>
@@ -265,7 +265,7 @@ export function Tombol({
   onClick?: () => void;
 }) {
   const kelas = {
-    utama: "bg-blue-600 text-white hover:bg-blue-700",
+    utama: "bg-emerald-600 text-white hover:bg-emerald-700",
     sekunder:
       "border border-slate-300 bg-white text-slate-800 hover:bg-slate-50",
     bahaya: "bg-rose-600 text-white hover:bg-rose-700",

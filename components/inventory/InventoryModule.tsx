@@ -13,7 +13,7 @@ import {
 } from "@/lib/inventory";
 
 const button =
-  "rounded-xl bg-[#1045FF] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#0d36cf] disabled:cursor-not-allowed disabled:opacity-50";
+  "rounded-xl bg-[#197a58] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#11523c] disabled:cursor-not-allowed disabled:opacity-50";
 
 export default function InventoryModule() {
   const [years, setYears] = useState<InventoryYear[]>([]);
@@ -149,7 +149,7 @@ export default function InventoryModule() {
       <div className="mx-auto max-w-7xl">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#1045FF]">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#197a58]">
               SIMAN / Inventarisasi tahunan
             </p>
             <h1 className="mt-2 text-3xl font-black">
@@ -199,10 +199,10 @@ export default function InventoryModule() {
           </div>
         </div>
         <div className="mt-6 grid gap-4 lg:grid-cols-[1.2fr_1fr]">
-          <section className="rounded-2xl bg-[#1045FF] p-6 text-white shadow-lg shadow-blue-900/10">
+          <section className="rounded-2xl bg-[#197a58] p-6 text-white shadow-lg shadow-emerald-900/10">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-blue-100">
+                <p className="text-xs font-bold uppercase tracking-widest text-emerald-100">
                   Sesi aktif
                 </p>
                 <h2 className="mt-2 text-2xl font-black">
@@ -227,7 +227,7 @@ export default function InventoryModule() {
                 ))}
               </select>
               <div className="rounded-xl bg-white/15 px-4 py-3 text-sm">
-                <span className="block text-xs text-blue-100">
+                <span className="block text-xs text-emerald-100">
                   Scan berhasil
                 </span>
                 <strong className="text-2xl">
@@ -242,13 +242,13 @@ export default function InventoryModule() {
             </p>
             <div className="mt-3 flex items-end justify-between">
               <div>
-                <p className="text-4xl font-black text-[#1045FF]">
+                <p className="text-4xl font-black text-[#197a58]">
                   {records.length}
                 </p>
                 <p className="text-sm text-slate-500">aset unik ditemukan</p>
               </div>
               <button
-                className="text-sm font-bold text-[#1045FF]"
+                className="text-sm font-bold text-[#197a58]"
                 onClick={() => setShowMissing((value) => !value)}
               >
                 {showMissing ? "Sembunyikan" : "Lihat"} status
@@ -271,7 +271,7 @@ export default function InventoryModule() {
             {message && (
               <p
                 role="status"
-                className="rounded-lg bg-blue-50 px-3 py-2 text-sm font-semibold text-[#1045FF]"
+                className="rounded-lg bg-emerald-50 px-3 py-2 text-sm font-semibold text-[#197a58]"
               >
                 {message}
               </p>

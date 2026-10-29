@@ -267,8 +267,8 @@ export default function AssetDashboard() {
     return `https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=2&data=${encodeURIComponent(qrData)}`;
   };
   const tampilkanQR = async (item: MasterAset) => {
-    const dataUrl = await bacaQR(item);
-    setDetail({ ...item, kode_register: dataUrl });
+    await bacaQR(item);
+    setDetail(item);
   };
   const unduhQR = async (item: MasterAset) => {
     const dataUrl = await bacaQR(item);
@@ -691,7 +691,7 @@ function QRModal({
     setSrc(
       `https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=2&data=${encodeURIComponent(item.kode_register?.trim() || item.id)}`,
     );
-  }, [item.id]);
+  }, [item.id, item.kode_register]);
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/60 p-4">
       <div className="w-full max-w-sm rounded-xl bg-white p-6 text-center shadow-xl">
@@ -708,7 +708,7 @@ function QRModal({
         ) : (
           <LoadingSpinner label="Membuat QR..." />
         )}
-        <p className="mt-3 break-all text-xs text-slate-500">ID: {item.id}</p>
+        <p className="mt-3 break-all text-xs text-slate-500">Kode Register: {item.kode_register || "Belum Diisi"}</p>
         <div className="mt-5 flex justify-center gap-2">
           <button
             onClick={onDownload}

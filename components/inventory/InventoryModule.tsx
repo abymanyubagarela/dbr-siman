@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase, type MasterAset, type MasterRuangan } from "@/lib/supabase";
 import { setPageLoading } from "@/components/ui/PageLoader";
+import { CameraBarcodeScanner } from "@/components/inventory/CameraBarcodeScanner";
 import {
   getInventoryAssets,
   getInventoryRooms,
@@ -81,10 +82,10 @@ export default function InventoryModule() {
     setMessage(result.error?.message ?? "Tahun inventaris dikunci.");
     await reload();
   };
-  const findAsset = async () => {
-    if (!barcode.trim()) return;
+  const findAsset = async (scannedValue = barcode) => {
+    if (!scannedValue.trim()) return;
     setBusy(true);
-    const result = await resolveAsset(barcode.trim());
+    const result = await resolveAsset(scannedValue.trim());
     setBusy(false);
     if (result.error) return setMessage(result.error.message);
     if (!result.data?.length)
@@ -286,8 +287,12 @@ export default function InventoryModule() {
             </div>
             <div>
               <label className="text-xs font-bold uppercase tracking-widest text-slate-500">
-                Barcode / kode register
+                Barcode / Kode Register
               </label>
+              <div className="mt-2">
+                <CameraBarcodeScanner disabled={busy} onDetected={(value) => { setBarcode(value); void findAsset(value); }} />
+              </div>
+              <p className="mt-4 text-xs font-semibold uppercase tracking-widest text-slate-400">Input Manual / USB Scanner</p>
               <div className="mt-2 flex gap-2">
                 <input
                   ref={inputRef}
@@ -301,7 +306,7 @@ export default function InventoryModule() {
                     )
                       void findAsset();
                   }}
-                  placeholder="Scan dengan USB scanner"
+                  placeholder="Masukkan kode register secara manual"
                   className="min-w-0 flex-1 rounded-xl border border-slate-200 px-3 py-3 text-sm"
                 />
                 <button

@@ -46,7 +46,12 @@ export default function GuestInventory({ title = "Inventarisasi Guest" }: { titl
       else setYear(yearResult.data);
       setLoading(false);
     };
-    void loadInitialData();
+    void loadInitialData().catch(() => {
+      if (!mounted) return;
+      setRoomsLoading(false);
+      setLoading(false);
+      setMessage("Data awal gagal dimuat. Periksa koneksi, lalu muat ulang halaman.");
+    });
     return () => {
       mounted = false;
       photoStreamRef.current?.getTracks().forEach((track) => track.stop());
@@ -62,19 +67,26 @@ export default function GuestInventory({ title = "Inventarisasi Guest" }: { titl
   const compressPhoto = async (blob: Blob) => {
     const bitmap = await createImageBitmap(blob);
     const canvas = document.createElement("canvas");
-    const scale = Math.min(1, 1280 / bitmap.width);
+    const scale = Math.min(1, 1280 / Math.max(bitmap.width, bitmap.height));
     canvas.width = Math.round(bitmap.width * scale);
     canvas.height = Math.round(bitmap.height * scale);
     const context = canvas.getContext("2d");
-    context?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-    let quality = 0.82;
-    let result: Blob | null = null;
-    do {
-      result = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", quality));
-      quality -= 0.08;
-    } while (result && result.size > 500 * 1024 && quality > 0.2);
-    bitmap.close();
-    return result ?? blob;
+    try {
+      if (!context) throw new Error("Canvas unavailable");
+      for (let attempt = 0; attempt < 8; attempt++) {
+        context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+        for (const quality of [0.82, 0.7, 0.58, 0.46, 0.34, 0.22]) {
+          const result = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", quality));
+          if (!result) throw new Error("Photo encoding failed");
+          if (result.size <= 500 * 1024) return result;
+        }
+        canvas.width = Math.max(1, Math.floor(canvas.width * 0.75));
+        canvas.height = Math.max(1, Math.floor(canvas.height * 0.75));
+      }
+      throw new Error("Photo exceeds 500 KB");
+    } finally {
+      bitmap.close();
+    }
   };
 
   const takePhoto = async () => {
@@ -121,12 +133,21 @@ export default function GuestInventory({ title = "Inventarisasi Guest" }: { titl
   };
 
   const submit = async () => {
+    if (saving) return;
+    if (!year) {
+      setMessage("Tahun inventaris belum tersedia. Minta admin mengunci tahun aktif, lalu muat ulang halaman.");
+      return;
+    }
     if (!year || !scannerName.trim() || !roomId || !photo || !code.trim()) {
       setMessage("Lengkapi nama, ruangan, hasil scan QR, dan foto terlebih dahulu.");
       return;
     }
     setSaving(true);
     try {
+      if (photo.size > 500 * 1024 || photo.type !== "image/jpeg") {
+        setMessage("Foto harus berupa JPEG maksimal 500 KB. Silakan ambil ulang foto.");
+        return;
+      }
       const assetResult = await resolveAsset(code.trim());
       const asset = assetResult.data?.[0];
       if (assetResult.error || !asset) {
@@ -142,6 +163,10 @@ export default function GuestInventory({ title = "Inventarisasi Guest" }: { titl
       const result = await recordGuestScan(year.id, asset.id, roomId, path, scannerName.trim());
       if (result.error) {
         setMessage(`Scan gagal: ${result.error.message}`);
+        return;
+      }
+      if (result.data?.status === "duplicate") {
+        setMessage(`Aset sudah tercatat di ${result.data.room_name ?? "ruangan lain"}. Scan baru belum disimpan.`);
         return;
       }
       setCode("");
@@ -227,7 +252,7 @@ export default function GuestInventory({ title = "Inventarisasi Guest" }: { titl
             <p className="mt-2 text-xs text-slate-500">Foto dikompres maksimal 500 KB sebelum diunggah.</p>
           </div>
 
-          <button type="button" disabled={loading || saving || !year} onClick={() => void submit()} className="w-full rounded-xl bg-[#165b42] px-4 py-3.5 font-bold text-white transition hover:bg-[#0f4632] disabled:cursor-not-allowed">{saving ? "Menyimpan Scan..." : "Simpan Scan"}</button>
+          <button type="button" disabled={loading || saving} onClick={() => void submit()} className="w-full rounded-xl bg-[#165b42] px-4 py-3.5 font-bold text-white transition hover:bg-[#0f4632] disabled:cursor-not-allowed">{saving ? "Menyimpan Scan..." : "Simpan Scan"}</button>
           <p role="status" aria-live="polite" className="text-center text-sm text-slate-500">{message}</p>
         </section>
         <p className="mt-5 text-center text-xs text-slate-400">Tahun Aktif: {year?.tahun ?? "Belum Dikunci"}</p>

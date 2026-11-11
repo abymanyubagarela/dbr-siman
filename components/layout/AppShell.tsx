@@ -7,6 +7,7 @@ const navItems = [
   { href: "/", label: "Dashboard", icon: "▦" },
   { href: "/aset", label: "Aset", icon: "▤" },
   { href: "/inventarisasi", label: "Inventarisasi", icon: "◫" },
+  { href: "/hasil-scan", label: "Hasil Scan", icon: "≡" },
   { href: "/#ruangan", label: "Ruangan", icon: "⌂" },
 ];
 
@@ -45,12 +46,12 @@ export function AppShell({
             Menu
           </p>
           <nav className="mt-3 flex flex-col gap-1" aria-label="Navigasi utama">
-            {navItems.map((item, index) => (
+            {navItems.map((item) => (
               <a
                 key={item.href}
                 href={item.href}
                 onClick={() => { setSidebarTerbuka(false); setPageLoading(true); }}
-                className={`group flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition ${index === 0 && bagian === "Dashboard" ? "bg-[#dff2e9] font-bold text-[#176e4f]" : "text-slate-500 hover:bg-white hover:text-[#176e4f]"}`}
+                className={`group flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition ${item.label === bagian ? "bg-[#dff2e9] font-bold text-[#176e4f]" : "text-slate-500 hover:bg-white hover:text-[#176e4f]"}`}
               >
                 <span className="w-5 text-center text-lg text-current">
                   {item.icon}

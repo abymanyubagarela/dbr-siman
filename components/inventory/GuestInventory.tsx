@@ -35,7 +35,7 @@ export default function GuestInventory() {
     return () => { mounted = false; };
   }, []);
 
-  const compressPhoto = async (blob: Blob) => { const bitmap = await createImageBitmap(blob); const canvas = document.createElement("canvas"); const scale = Math.min(1, 1280 / bitmap.width); canvas.width = Math.round(bitmap.width * scale); canvas.height = Math.round(bitmap.height * scale); const context = canvas.getContext("2d"); context?.drawImage(bitmap, 0, 0, canvas.width, canvas.height); let quality = 0.82; let result: Blob | null = null; do { result = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", quality)); quality -= 0.08; } while (result && result.size > 100 * 1024 && quality > 0.2); bitmap.close(); return result ?? blob; };
+  const compressPhoto = async (blob: Blob) => { const bitmap = await createImageBitmap(blob); const canvas = document.createElement("canvas"); const scale = Math.min(1, 1280 / bitmap.width); canvas.width = Math.round(bitmap.width * scale); canvas.height = Math.round(bitmap.height * scale); const context = canvas.getContext("2d"); context?.drawImage(bitmap, 0, 0, canvas.width, canvas.height); let quality = 0.82; let result: Blob | null = null; do { result = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", quality)); quality -= 0.08; } while (result && result.size > 500 * 1024 && quality > 0.2); bitmap.close(); return result ?? blob; };
 
   const takePhoto = async () => {
     if (!videoRef.current || !canvasRef.current) return;

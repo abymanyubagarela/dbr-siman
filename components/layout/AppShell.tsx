@@ -7,6 +7,8 @@ const navItems = [
   { href: "/", label: "Dashboard", icon: "▦" },
   { href: "/aset", label: "Aset", icon: "▤" },
   { href: "/inventarisasi", label: "Inventarisasi", icon: "◫" },
+  { href: "/hasil-scan", label: "Hasil Scan", icon: "≡" },
+  { href: "/user-scan", label: "User Scan", icon: "⌁" },
   { href: "/#ruangan", label: "Ruangan", icon: "⌂" },
 ];
 
@@ -21,8 +23,8 @@ export function AppShell({
 }) {
   const [sidebarTerbuka, setSidebarTerbuka] = useState(false);
   return (
-    <div className="min-h-screen bg-[#eef0f2] p-0 text-[#111111] sm:p-4 lg:p-8">
-      <div className="mx-auto flex min-h-[calc(100vh-2rem)] max-w-[1540px] overflow-hidden rounded-none bg-[#f8f9f8] shadow-[0_20px_70px_rgba(22,32,28,0.12)] sm:rounded-[28px] lg:min-h-[calc(100vh-4rem)]">
+    <div className="h-screen overflow-hidden bg-[#eef0f2] p-0 text-[#111111] sm:p-4 lg:p-8">
+      <div className="mx-auto flex h-full min-h-0 max-w-[1540px] overflow-hidden rounded-none bg-[#f8f9f8] shadow-[0_20px_70px_rgba(22,32,28,0.12)] sm:rounded-[28px]">
         <aside
           className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-slate-200 bg-[#f8f9f8] px-5 py-7 transition-transform sm:absolute lg:relative lg:translate-x-0 ${sidebarTerbuka ? "translate-x-0" : "-translate-x-full"}`}
         >
@@ -45,12 +47,12 @@ export function AppShell({
             Menu
           </p>
           <nav className="mt-3 flex flex-col gap-1" aria-label="Navigasi utama">
-            {navItems.map((item, index) => (
+            {navItems.map((item) => (
               <a
                 key={item.href}
                 href={item.href}
                 onClick={() => { setSidebarTerbuka(false); setPageLoading(true); }}
-                className={`group flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition ${index === 0 && bagian === "Dashboard" ? "bg-[#dff2e9] font-bold text-[#176e4f]" : "text-slate-500 hover:bg-white hover:text-[#176e4f]"}`}
+                className={`group flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition ${item.label === bagian ? "bg-[#dff2e9] font-bold text-[#176e4f]" : "text-slate-500 hover:bg-white hover:text-[#176e4f]"}`}
               >
                 <span className="w-5 text-center text-lg text-current">
                   {item.icon}
@@ -101,8 +103,8 @@ export function AppShell({
             onClick={() => setSidebarTerbuka(false)}
           />
         )}
-        <div className="min-w-0 flex-1">
-          <header className="flex h-[76px] items-center justify-between border-b border-slate-200 bg-[#f8f9f8] px-5 sm:px-8">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+          <header className="flex h-[76px] shrink-0 items-center justify-between border-b border-slate-200 bg-[#f8f9f8] px-5 sm:px-8">
             <div className="flex items-center gap-3">
               <button
                 type="button"
@@ -126,7 +128,7 @@ export function AppShell({
               </div>
             </div>
           </header>
-          <main className="min-w-0">{children}</main>
+          <main className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain">{children}</main>
           <PageLoader />
         </div>
       </div>

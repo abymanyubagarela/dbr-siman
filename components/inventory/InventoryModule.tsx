@@ -208,12 +208,16 @@ export default function InventoryModule() {
                 onChange={(event) => setRoomId(event.target.value)}
                 className="rounded-xl border-0 bg-white px-3 py-3 text-sm font-semibold text-slate-900"
               >
-                <option value="">Pilih ruangan</option>
-                {rooms.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.nama_ruang}
-                  </option>
-                ))}
+<option value="">Pilih Ruangan</option>
+              {Object.entries(rooms.reduce<Record<string, MasterRuangan[]>>((groups, item) => {
+                const jenis = item.jenis_ruang?.trim() || "Tanpa Jenis Ruang";
+                (groups[jenis] ??= []).push(item);
+                return groups;
+              }, {})).map(([jenis, groupedRooms]) => (
+                <optgroup key={jenis} label={jenis}>
+                  {groupedRooms.map((item) => <option key={item.id} value={item.id}>{item.nama_ruang}</option>)}
+                </optgroup>
+              ))}
               </select>
               <div className="rounded-xl bg-white/15 px-4 py-3 text-sm">
                 <span className="block text-xs text-emerald-100">

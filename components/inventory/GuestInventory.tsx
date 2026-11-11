@@ -227,7 +227,7 @@ export default function GuestInventory({ title = "Inventarisasi Guest" }: { titl
             <p className="mt-2 text-xs text-slate-500">Foto dikompres maksimal 500 KB sebelum diunggah.</p>
           </div>
 
-          <button type="button" disabled={loading || saving || !year} onClick={() => void submit()} className="w-full rounded-xl bg-[#165b42] px-4 py-3.5 font-bold text-white transition hover:bg-[#0f4632] disabled:cursor-not-allowed disabled:opacity-50">{saving ? "Menyimpan Scan..." : "Simpan Scan"}</button>
+          <button type="button" disabled={loading || saving || !year} onClick={() => void submit()} className="w-full rounded-xl bg-[#165b42] px-4 py-3.5 font-bold text-white transition hover:bg-[#0f4632] disabled:cursor-not-allowed">{saving ? "Menyimpan Scan..." : "Simpan Scan"}</button>
           <p role="status" aria-live="polite" className="text-center text-sm text-slate-500">{message}</p>
         </section>
         <p className="mt-5 text-center text-xs text-slate-400">Tahun Aktif: {year?.tahun ?? "Belum Dikunci"}</p>

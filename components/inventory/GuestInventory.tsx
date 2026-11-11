@@ -22,6 +22,7 @@ export default function GuestInventory({ title = "Inventarisasi Guest" }: { titl
   const [roomSearch, setRoomSearch] = useState("");
   const [roomListOpen, setRoomListOpen] = useState(false);
   const [photoCameraReady, setPhotoCameraReady] = useState(false);
+  const [photoCameraStarting, setPhotoCameraStarting] = useState(false);
   const [photo, setPhoto] = useState<Blob | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [code, setCode] = useState("");
@@ -137,6 +138,7 @@ export default function GuestInventory({ title = "Inventarisasi Guest" }: { titl
 
   const startPhotoCamera = async () => {
     if (!videoRef.current) return;
+    setPhotoCameraStarting(true);
     photoStreamRef.current?.getTracks().forEach((track) => track.stop());
     setPreview(null);
     setPhoto(null);
@@ -150,6 +152,8 @@ export default function GuestInventory({ title = "Inventarisasi Guest" }: { titl
       setMessage("Kamera siap. Tekan Ambil Foto untuk melanjutkan.");
     } catch {
       setMessage("Kamera tidak dapat diakses. Periksa izin kamera browser.");
+    } finally {
+      setPhotoCameraStarting(false);
     }
   };
 
@@ -255,7 +259,7 @@ export default function GuestInventory({ title = "Inventarisasi Guest" }: { titl
 
           <div>
             <label className="text-sm font-semibold">Scan QR / Barcode</label>
-            <div className="mt-2"><CameraBarcodeScanner disabled={loading || saving} onDetected={setCode} /></div>
+            <div className="mt-2"><CameraBarcodeScanner disabled={loading || saving || photoCameraStarting || photoCameraReady} onDetected={setCode} /></div>
             <label htmlFor="asset-register" className="mt-3 block text-sm font-semibold">Kode Register</label>
             <input id="asset-register" value={code} disabled={saving} onChange={(event) => setCode(event.target.value)} placeholder="Hasil scan atau masukkan kode register" autoComplete="off" className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 font-mono text-sm" />
             {code.trim() && <div aria-live="polite" className="mt-2 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-[#165b42]">

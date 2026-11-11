@@ -15,6 +15,8 @@ export default function GuestInventory({ title = "Inventarisasi Guest" }: { titl
   const [rooms, setRooms] = useState<RoomOption[]>([]);
   const [scannerName, setScannerName] = useState("");
   const [roomId, setRoomId] = useState("");
+  const [roomSearch, setRoomSearch] = useState("");
+  const [photoCameraReady, setPhotoCameraReady] = useState(false);
   const [photo, setPhoto] = useState<Blob | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [code, setCode] = useState("");
@@ -53,14 +55,25 @@ export default function GuestInventory({ title = "Inventarisasi Guest" }: { titl
     setPhoto(await compressPhoto(await response.blob()));
     setPreview(dataUrl);
     videoRef.current.srcObject && (videoRef.current.srcObject as MediaStream).getTracks().forEach((track) => track.stop());
+    videoRef.current.srcObject = null;
+    setPhotoCameraReady(false);
     setMessage("Foto siap. Sekarang scan barcode atau QR aset.");
   };
 
   const startPhotoCamera = async () => {
     if (!videoRef.current) return;
-    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
-    videoRef.current.srcObject = stream;
-    await videoRef.current.play();
+    setPreview(null);
+    setPhoto(null);
+    setPhotoCameraReady(false);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false });
+      videoRef.current.srcObject = stream;
+      await videoRef.current.play();
+      setPhotoCameraReady(true);
+      setMessage("Kamera siap. Tekan Ambil Foto untuk melanjutkan.");
+    } catch {
+      setMessage("Kamera tidak dapat diakses. Periksa izin kamera browser.");
+    }
   };
 
   const submit = async () => {
@@ -75,8 +88,8 @@ export default function GuestInventory({ title = "Inventarisasi Guest" }: { titl
     const result = await recordGuestScan(year.id, asset.id, roomId, path, scannerName);
     setBusy(false);
     if (result.error) return setMessage(`Scan gagal: ${result.error.message}`);
-    setCode(""); setRoomId(""); setPhoto(null); setPreview(null); setMessage(`Scan berhasil disimpan. ${scannerName} siap untuk aset berikutnya.`);
+    setCode(""); setRoomId(""); setRoomSearch(""); setPhoto(null); setPreview(null); setMessage(`Scan berhasil disimpan. ${scannerName} siap untuk aset berikutnya.`);
   };
 
-  return <main className="h-screen overflow-y-auto bg-[#f4f7f5] px-4 py-6 text-slate-900 sm:px-8"><div className="mx-auto max-w-2xl"><header className="mb-6 rounded-3xl bg-[#165b42] p-6 text-white shadow-xl"><div className="flex items-center gap-3"><span className="text-3xl" aria-hidden="true">▱</span><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-100">OpenLogistics</p><h1 className="text-2xl font-bold">{title}</h1></div></div><p className="mt-4 text-sm text-emerald-50">Scan Barang Berdasarkan Ruangan</p></header><section className="space-y-5 rounded-3xl border border-emerald-100 bg-white p-5 shadow-sm sm:p-7"><div><label className="text-sm font-semibold">Nama Scanner</label><input value={scannerName} onChange={(event) => setScannerName(event.target.value)} placeholder="Masukkan Nama Anda" className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3" autoComplete="name" /></div><div><label className="text-sm font-semibold">Pilih Ruangan</label><select value={roomId} onChange={(event) => setRoomId(event.target.value)} className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3"><option value="">Pilih Ruangan</option>{Object.entries(rooms.reduce<Record<string, RoomOption[]>>((groups, room) => { const jenis = room.jenis_ruang?.trim() || "Tanpa Jenis Ruang"; (groups[jenis] ??= []).push(room); return groups; }, {})).map(([jenis, groupedRooms]) => <optgroup key={jenis} label={jenis}>{groupedRooms.map((room) => <option key={room.id} value={room.id}>{room.nama_ruang}</option>)}</optgroup>)}</select></div><div><label className="text-sm font-semibold">Foto Barang</label><div className="mt-2 overflow-hidden rounded-2xl bg-slate-950"><video ref={videoRef} autoPlay muted playsInline className={`aspect-video w-full object-cover ${preview ? "hidden" : ""}`} aria-label="Kamera foto barang" />{preview && <img src={preview} alt="Pratinjau foto barang" className="aspect-video w-full object-cover" />} </div><canvas ref={canvasRef} className="hidden" /><div className="mt-3 flex gap-2"><button type="button" onClick={() => void startPhotoCamera()} className="flex-1 rounded-xl border border-emerald-200 px-4 py-3 text-sm font-semibold text-[#197a58]">Buka Kamera</button><button type="button" onClick={() => void takePhoto()} disabled={!videoRef.current?.srcObject} className="flex-1 rounded-xl bg-[#197a58] px-4 py-3 text-sm font-semibold text-white disabled:opacity-40">Ambil Foto</button></div></div><div><label className="text-sm font-semibold">Scan Barcode / QR</label><div className="mt-2"><CameraBarcodeScanner disabled={!photo || busy} onDetected={setCode} /></div>{code && <p className="mt-2 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-[#165b42]">Kode: {code}</p>}</div><button type="button" disabled={busy || !year} onClick={() => void submit()} className="w-full rounded-xl bg-[#165b42] px-4 py-3.5 font-bold text-white transition hover:bg-[#0f4632] disabled:cursor-not-allowed disabled:opacity-50">{busy ? "Menyiapkan Data..." : "Submit Scan"}</button><p className="text-center text-sm text-slate-500">{message}</p></section><p className="mt-5 text-center text-xs text-slate-400">Tahun Aktif: {year?.tahun ?? "Belum Dikunci"}</p></div></main>;
+  return <main className="h-screen overflow-y-auto bg-[#f4f7f5] px-4 py-6 text-slate-900 sm:px-8"><div className="mx-auto max-w-2xl"><header className="mb-6 rounded-3xl bg-[#165b42] p-6 text-white shadow-xl"><div className="flex items-center gap-3"><span className="text-3xl" aria-hidden="true">▱</span><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-100">OpenLogistics</p><h1 className="text-2xl font-bold">{title}</h1></div></div><p className="mt-4 text-sm text-emerald-50">Scan Barang Berdasarkan Ruangan</p></header><section className="space-y-5 rounded-3xl border border-emerald-100 bg-white p-5 shadow-sm sm:p-7"><div><label className="text-sm font-semibold">Nama Scanner</label><input value={scannerName} onChange={(event) => setScannerName(event.target.value)} placeholder="Masukkan Nama Anda" className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3" autoComplete="name" /></div><div><label htmlFor="room-search" className="text-sm font-semibold">Pilih Ruangan</label><input id="room-search" list="master-room-options" value={roomSearch} onChange={(event) => { const value = event.target.value; setRoomSearch(value); const match = rooms.find((room) => `${room.jenis_ruang?.trim() || "Tanpa Jenis Ruang"} — ${room.nama_ruang}` === value); setRoomId(match?.id ?? ""); }} placeholder="Cari jenis ruang atau nama ruang" className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3" autoComplete="off" /><datalist id="master-room-options">{rooms.map((room) => <option key={room.id} value={`${room.jenis_ruang?.trim() || "Tanpa Jenis Ruang"} — ${room.nama_ruang}`} />)}</datalist><p className="mt-1.5 text-xs text-slate-500">Pilih format jenis ruang — nama ruang.</p></div><div><label className="text-sm font-semibold">Foto Barang</label><div className="mt-2 overflow-hidden rounded-2xl bg-slate-950"><video ref={videoRef} autoPlay muted playsInline className={`aspect-video w-full object-cover ${preview ? "hidden" : ""}`} aria-label="Kamera foto barang" />{preview && <img src={preview} alt="Pratinjau foto barang" className="aspect-video w-full object-cover" />} </div><canvas ref={canvasRef} className="hidden" /><div className="mt-3 flex gap-2"><button type="button" onClick={() => void startPhotoCamera()} className="flex-1 rounded-xl border border-emerald-200 px-4 py-3 text-sm font-semibold text-[#197a58]">Buka Kamera</button><button type="button" onClick={() => void takePhoto()} disabled={!photoCameraReady} className="flex-1 rounded-xl bg-[#197a58] px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40">Ambil Foto</button></div></div><div><label className="text-sm font-semibold">Scan Barcode / QR</label><div className="mt-2"><CameraBarcodeScanner disabled={!photo || busy} onDetected={setCode} /></div>{code && <p className="mt-2 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-[#165b42]">Kode: {code}</p>}</div><button type="button" disabled={busy || !year} onClick={() => void submit()} className="w-full rounded-xl bg-[#165b42] px-4 py-3.5 font-bold text-white transition hover:bg-[#0f4632] disabled:cursor-not-allowed disabled:opacity-50">{busy ? "Menyiapkan Data..." : "Submit Scan"}</button><p className="text-center text-sm text-slate-500">{message}</p></section><p className="mt-5 text-center text-xs text-slate-400">Tahun Aktif: {year?.tahun ?? "Belum Dikunci"}</p></div></main>;
 }

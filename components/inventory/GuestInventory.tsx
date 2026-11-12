@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { CameraBarcodeScanner } from "@/components/inventory/CameraBarcodeScanner";
 import { setPageLoading } from "@/components/ui/PageLoader";
 import { recordGuestScan, resolveAsset } from "@/lib/inventory";
-import { supabase, type MasterRuangan } from "@/lib/supabase";
+import { supabase, type MasterAset, type MasterRuangan } from "@/lib/supabase";
 
 type RoomOption = Pick<MasterRuangan, "id" | "nama_ruang" | "jenis_ruang">;
 
@@ -22,9 +22,31 @@ export default function GuestInventory({ title = "Inventarisasi Guest" }: { titl
   const [roomSearch, setRoomSearch] = useState("");
   const [roomListOpen, setRoomListOpen] = useState(false);
   const [photoCameraReady, setPhotoCameraReady] = useState(false);
+  const [photoCameraStarting, setPhotoCameraStarting] = useState(false);
   const [photo, setPhoto] = useState<Blob | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [code, setCode] = useState("");
+  const [assetLookup, setAssetLookup] = useState<{ code: string; asset: MasterAset | null; error: string } | null>(null);
+  const matchedAsset = assetLookup?.code === code ? assetLookup.asset : null;
+
+  useEffect(() => {
+    let cancelled = false;
+    setAssetLookup(null);
+    if (!code.trim()) return;
+    const timer = window.setTimeout(async () => {
+      try {
+        const result = await resolveAsset(code);
+        if (cancelled) return;
+        const error = result.error ? `Pencarian gagal: ${result.error.message}`
+          : !result.data?.length ? "Kode register tidak ditemukan pada master aset. Periksa kode atau scan ulang."
+          : result.data.length > 1 ? "Kode register duplikat pada master aset. Hubungi admin sebelum menyimpan." : "";
+        setAssetLookup({ code, asset: error ? null : result.data![0] as MasterAset, error });
+      } catch {
+        if (!cancelled) setAssetLookup({ code, asset: null, error: "Pencarian gagal. Periksa koneksi lalu coba lagi." });
+      }
+    }, 250);
+    return () => { cancelled = true; window.clearTimeout(timer); };
+  }, [code]);
   const [message, setMessage] = useState("Masukkan nama, pilih ruangan, scan QR, lalu ambil foto.");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -46,7 +68,12 @@ export default function GuestInventory({ title = "Inventarisasi Guest" }: { titl
       else setYear(yearResult.data);
       setLoading(false);
     };
-    void loadInitialData();
+    void loadInitialData().catch(() => {
+      if (!mounted) return;
+      setRoomsLoading(false);
+      setLoading(false);
+      setMessage("Data awal gagal dimuat. Periksa koneksi, lalu muat ulang halaman.");
+    });
     return () => {
       mounted = false;
       photoStreamRef.current?.getTracks().forEach((track) => track.stop());
@@ -62,19 +89,26 @@ export default function GuestInventory({ title = "Inventarisasi Guest" }: { titl
   const compressPhoto = async (blob: Blob) => {
     const bitmap = await createImageBitmap(blob);
     const canvas = document.createElement("canvas");
-    const scale = Math.min(1, 1280 / bitmap.width);
+    const scale = Math.min(1, 1280 / Math.max(bitmap.width, bitmap.height));
     canvas.width = Math.round(bitmap.width * scale);
     canvas.height = Math.round(bitmap.height * scale);
     const context = canvas.getContext("2d");
-    context?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-    let quality = 0.82;
-    let result: Blob | null = null;
-    do {
-      result = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", quality));
-      quality -= 0.08;
-    } while (result && result.size > 500 * 1024 && quality > 0.2);
-    bitmap.close();
-    return result ?? blob;
+    try {
+      if (!context) throw new Error("Canvas unavailable");
+      for (let attempt = 0; attempt < 8; attempt++) {
+        context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+        for (const quality of [0.82, 0.7, 0.58, 0.46, 0.34, 0.22]) {
+          const result = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", quality));
+          if (!result) throw new Error("Photo encoding failed");
+          if (result.size <= 500 * 1024) return result;
+        }
+        canvas.width = Math.max(1, Math.floor(canvas.width * 0.75));
+        canvas.height = Math.max(1, Math.floor(canvas.height * 0.75));
+      }
+      throw new Error("Photo exceeds 500 KB");
+    } finally {
+      bitmap.close();
+    }
   };
 
   const takePhoto = async () => {
@@ -104,6 +138,7 @@ export default function GuestInventory({ title = "Inventarisasi Guest" }: { titl
 
   const startPhotoCamera = async () => {
     if (!videoRef.current) return;
+    setPhotoCameraStarting(true);
     photoStreamRef.current?.getTracks().forEach((track) => track.stop());
     setPreview(null);
     setPhoto(null);
@@ -117,20 +152,31 @@ export default function GuestInventory({ title = "Inventarisasi Guest" }: { titl
       setMessage("Kamera siap. Tekan Ambil Foto untuk melanjutkan.");
     } catch {
       setMessage("Kamera tidak dapat diakses. Periksa izin kamera browser.");
+    } finally {
+      setPhotoCameraStarting(false);
     }
   };
 
   const submit = async () => {
+    if (saving) return;
+    if (!year) {
+      setMessage("Tahun inventaris belum tersedia. Minta admin mengunci tahun aktif, lalu muat ulang halaman.");
+      return;
+    }
     if (!year || !scannerName.trim() || !roomId || !photo || !code.trim()) {
       setMessage("Lengkapi nama, ruangan, hasil scan QR, dan foto terlebih dahulu.");
       return;
     }
     setSaving(true);
     try {
+      if (photo.size > 500 * 1024 || photo.type !== "image/jpeg") {
+        setMessage("Foto harus berupa JPEG maksimal 500 KB. Silakan ambil ulang foto.");
+        return;
+      }
       const assetResult = await resolveAsset(code.trim());
       const asset = assetResult.data?.[0];
-      if (assetResult.error || !asset) {
-        setMessage("Aset tidak ditemukan dari kode register.");
+      if (assetResult.error || !asset || assetResult.data.length !== 1) {
+        setMessage(assetResult.error ? `Pencarian aset gagal: ${assetResult.error.message}` : !asset ? "Aset tidak ditemukan dari kode register." : "Kode register duplikat. Hubungi admin sebelum menyimpan.");
         return;
       }
       const path = `${year.id}/${asset.id}/${crypto.randomUUID()}.jpg`;
@@ -142,6 +188,10 @@ export default function GuestInventory({ title = "Inventarisasi Guest" }: { titl
       const result = await recordGuestScan(year.id, asset.id, roomId, path, scannerName.trim());
       if (result.error) {
         setMessage(`Scan gagal: ${result.error.message}`);
+        return;
+      }
+      if (result.data?.status === "duplicate") {
+        setMessage(`Aset sudah tercatat di ${result.data.room_name ?? "ruangan lain"}. Scan baru belum disimpan.`);
         return;
       }
       setCode("");
@@ -209,8 +259,17 @@ export default function GuestInventory({ title = "Inventarisasi Guest" }: { titl
 
           <div>
             <label className="text-sm font-semibold">Scan QR / Barcode</label>
-            <div className="mt-2"><CameraBarcodeScanner disabled={loading || saving} onDetected={setCode} /></div>
-            {code && <p className="mt-2 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-[#165b42]">Kode: {code}</p>}
+            <div className="mt-2"><CameraBarcodeScanner disabled={loading || saving || photoCameraStarting || photoCameraReady} onDetected={setCode} /></div>
+            <label htmlFor="asset-register" className="mt-3 block text-sm font-semibold">Kode Register</label>
+            <input id="asset-register" value={code} disabled={saving} onChange={(event) => setCode(event.target.value)} placeholder="Hasil scan atau masukkan kode register" autoComplete="off" className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 font-mono text-sm" />
+            {code.trim() && <div aria-live="polite" className="mt-2 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-[#165b42]">
+              {assetLookup?.code !== code ? <p>Mencari aset...</p> : assetLookup.error ? <p role="alert">{assetLookup.error}</p> : matchedAsset && <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2">
+                <dt>Nama Barang</dt><dd className="font-semibold">{matchedAsset.nama_barang || "—"}</dd>
+                <dt>Kode Register</dt><dd className="break-all font-mono">{matchedAsset.kode_register || "—"}</dd>
+                <dt>Kode Barang</dt><dd className="font-mono">{matchedAsset.kode_barang || "—"}</dd>
+                <dt>NUP</dt><dd className="font-mono">{matchedAsset.nup ?? "—"}</dd>
+              </dl>}
+            </div>}
           </div>
 
           <div>
@@ -227,7 +286,7 @@ export default function GuestInventory({ title = "Inventarisasi Guest" }: { titl
             <p className="mt-2 text-xs text-slate-500">Foto dikompres maksimal 500 KB sebelum diunggah.</p>
           </div>
 
-          <button type="button" disabled={loading || saving || !year} onClick={() => void submit()} className="w-full rounded-xl bg-[#165b42] px-4 py-3.5 font-bold text-white transition hover:bg-[#0f4632] disabled:cursor-not-allowed">{saving ? "Menyimpan Scan..." : "Simpan Scan"}</button>
+          <button type="button" disabled={loading || saving} onClick={() => void submit()} className="w-full rounded-xl bg-[#165b42] px-4 py-3.5 font-bold text-white transition hover:bg-[#0f4632] disabled:cursor-not-allowed">{saving ? "Menyimpan Scan..." : "Simpan Scan"}</button>
           <p role="status" aria-live="polite" className="text-center text-sm text-slate-500">{message}</p>
         </section>
         <p className="mt-5 text-center text-xs text-slate-400">Tahun Aktif: {year?.tahun ?? "Belum Dikunci"}</p>

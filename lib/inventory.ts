@@ -22,4 +22,6 @@ export async function resolveAsset(code: string) {
   return result;
 }
 export async function recordScan(yearId: string, assetId: string, roomId: string, imagePath: string) { return supabase.rpc("record_inventarisasi_scan", { p_tahun_id: yearId, p_aset_id: assetId, p_ruangan_id: roomId, p_image_path: imagePath }); }
-export async function recordGuestScan(yearId: string, assetId: string, roomId: string, imagePath: string, scannedBy: string) { return supabase.rpc("record_guest_inventarisasi_scan", { p_tahun_id: yearId, p_aset_id: assetId, p_ruangan_id: roomId, p_image_path: imagePath, p_scanned_by: scannedBy }); }
+export async function checkGuestScanDuplicate(yearId: string, assetId: string) { return supabase.rpc("check_guest_inventarisasi_duplicate", { p_tahun_id: yearId, p_aset_id: assetId }); }
+export async function recordGuestScan(yearId: string, assetId: string, roomId: string, imagePath: string, scannedBy: string, allowDuplicate = false) { return supabase.rpc("record_guest_inventarisasi_scan", { p_tahun_id: yearId, p_aset_id: assetId, p_ruangan_id: roomId, p_image_path: imagePath, p_scanned_by: scannedBy, p_allow_duplicate: allowDuplicate }); }
+export async function recordGuestRoomPhoto(yearId: string, roomId: string, imagePath: string, scannedBy: string) { return supabase.rpc("record_guest_room_photo", { p_tahun_id: yearId, p_ruangan_id: roomId, p_image_path: imagePath, p_scanned_by: scannedBy }); }

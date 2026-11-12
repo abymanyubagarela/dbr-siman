@@ -84,14 +84,13 @@ export default function InventoryModule() {
   };
   const findAsset = async (scannedValue = barcode) => {
     if (!scannedValue.trim()) return;
-    setAsset(null);
     setBusy(true);
     const result = await resolveAsset(scannedValue.trim());
     setBusy(false);
     if (result.error) return setMessage(result.error.message);
     if (!result.data?.length)
       return setMessage(
-        "Aset tidak ditemukan. Gunakan kode register aset.",
+        "Aset tidak ditemukan. Gunakan kode register atau kode barang.",
       );
     if (result.data.length > 1)
       return setMessage("Kode tidak unik. Gunakan kode register.");

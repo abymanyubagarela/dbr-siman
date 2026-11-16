@@ -26,14 +26,19 @@ export default function ScannedItemsPage() {
   const [roomId, setRoomId] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
-    const [yearResult, roomResult] = await Promise.all([
+    const [yearResult, roomResult, adminResult] = await Promise.all([
       supabase.from("inventarisasi_tahun").select("id,tahun,is_locked").order("tahun", { ascending: false }),
       supabase.from("master_ruangan").select("id,nama_ruang,jenis_ruang").order("nama_ruang"),
+      supabase.rpc("is_inventory_admin"),
     ]);
+    setIsAdmin(adminResult.data === true);
     if (yearResult.error || roomResult.error) {
       setError("Data inventaris tidak dapat dimuat. Periksa koneksi dan izin akses.");
       setLoading(false);
@@ -74,6 +79,36 @@ export default function ScannedItemsPage() {
   useEffect(() => { void load(); }, [load]);
   useEffect(() => { setPageLoading(loading); return () => setPageLoading(false); }, [loading]);
 
+  const handleDelete = async (row: ScanRow) => {
+    const assetName = row.inventarisasi_aset?.master_aset?.nama_barang || "hasil scan ini";
+    if (!window.confirm(`Hapus ${assetName}? Hasil scan dan foto terkait akan dihapus permanen.`)) return;
+
+    setDeletingId(row.id);
+    setError("");
+    setNotice("");
+    try {
+      const { data, error: deleteError } = await supabase.rpc("delete_inventarisasi_scan", { p_scan_log_id: row.id });
+      if (deleteError) {
+        setError("Hasil scan gagal dihapus. Pastikan akun Anda memiliki akses admin, lalu coba lagi.");
+        return;
+      }
+
+      setRows((currentRows) => currentRows.filter((currentRow) => currentRow.id !== row.id));
+      if (data?.image_path) {
+        const { error: photoError } = await supabase.storage.from("inventarisasi-foto").remove([data.image_path]);
+        setNotice(photoError
+          ? "Hasil scan telah dihapus, tetapi foto terkait gagal dihapus."
+          : "Hasil scan dan foto terkait berhasil dihapus.");
+      } else {
+        setNotice("Hasil scan berhasil dihapus.");
+      }
+    } catch {
+      setError("Hasil scan gagal dihapus. Periksa koneksi lalu coba lagi.");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const roomGroups = useMemo(() => Object.entries(rooms.reduce<Record<string, MasterRuangan[]>>((groups, room) => {
     const type = room.jenis_ruang?.trim() || "Tanpa Jenis Ruang";
     (groups[type] ??= []).push(room);
@@ -90,6 +125,7 @@ export default function ScannedItemsPage() {
       <label className="text-sm font-semibold text-slate-700">Filter Ruangan<select value={roomId} onChange={(event) => setRoomId(event.target.value)} className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-3 font-normal"><option value="">Semua Ruangan</option>{roomGroups.map(([type, group]) => <optgroup key={type} label={type}>{group.map((room) => <option key={room.id} value={room.id}>{room.nama_ruang}</option>)}</optgroup>)}</select></label>
     </div>
     {error && <p role="alert" className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
-    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><div className="overflow-x-auto"><table className="w-full min-w-[820px] text-left text-sm"><thead className="bg-slate-50 text-xs uppercase tracking-wider text-slate-500"><tr><th className="px-5 py-4">Barang</th><th className="px-5 py-4">Kode Register</th><th className="px-5 py-4">Jenis Ruang</th><th className="px-5 py-4">Ruangan</th><th className="px-5 py-4">Di-scan Oleh</th><th className="px-5 py-4">Waktu Scan</th></tr></thead><tbody className="divide-y divide-slate-100">{rows.map((row) => { const asset = row.inventarisasi_aset?.master_aset; return <tr key={row.id} className="hover:bg-emerald-50/40"><td className="px-5 py-4"><p className="font-bold text-slate-800">{asset?.nama_barang || "Tanpa Nama"}</p><p className="mt-1 text-xs text-slate-500">{asset?.merk || "Merk Tidak Diisi"}</p><p className="mt-1 text-xs text-slate-500">Kode Barang: {asset?.kode_barang || "—"} · NUP: {asset?.nup ?? "—"}</p></td><td className="px-5 py-4 font-mono text-xs text-slate-600">{asset?.kode_register || asset?.kode_barang || "—"}</td><td className="px-5 py-4 text-slate-600">{row.master_ruangan?.jenis_ruang || "Tanpa Jenis Ruang"}</td><td className="px-5 py-4 font-medium text-slate-700">{row.master_ruangan?.nama_ruang || "—"}</td><td className="px-5 py-4 text-slate-600">{row.scanned_by || "—"}</td><td className="px-5 py-4 text-slate-500">{new Date(row.scanned_at).toLocaleString("id-ID")}</td></tr>; })}{!loading && rows.length === 0 && <tr><td colSpan={6} className="px-5 py-16 text-center text-slate-500">Belum ada barang yang di-scan untuk filter ini.</td></tr>}</tbody></table></div></div>
+    {notice && <p role="status" className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{notice}</p>}
+    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><div className="overflow-x-auto"><table className="w-full min-w-[900px] text-left text-sm"><thead className="bg-slate-50 text-xs uppercase tracking-wider text-slate-500"><tr><th className="px-5 py-4">Barang</th><th className="px-5 py-4">Kode Register</th><th className="px-5 py-4">Jenis Ruang</th><th className="px-5 py-4">Ruangan</th><th className="px-5 py-4">Di-scan Oleh</th><th className="px-5 py-4">Waktu Scan</th>{isAdmin && <th className="px-5 py-4">Tindakan</th>}</tr></thead><tbody className="divide-y divide-slate-100">{rows.map((row) => { const asset = row.inventarisasi_aset?.master_aset; return <tr key={row.id} className="hover:bg-emerald-50/40"><td className="px-5 py-4"><p className="font-bold text-slate-800">{asset?.nama_barang || "Tanpa Nama"}</p><p className="mt-1 text-xs text-slate-500">{asset?.merk || "Merk Tidak Diisi"}</p><p className="mt-1 text-xs text-slate-500">Kode Barang: {asset?.kode_barang || "—"} · NUP: {asset?.nup ?? "—"}</p></td><td className="px-5 py-4 font-mono text-xs text-slate-600">{asset?.kode_register || asset?.kode_barang || "—"}</td><td className="px-5 py-4 text-slate-600">{row.master_ruangan?.jenis_ruang || "Tanpa Jenis Ruang"}</td><td className="px-5 py-4 font-medium text-slate-700">{row.master_ruangan?.nama_ruang || "—"}</td><td className="px-5 py-4 text-slate-600">{row.scanned_by || "—"}</td><td className="px-5 py-4 text-slate-500">{new Date(row.scanned_at).toLocaleString("id-ID")}</td>{isAdmin && <td className="px-5 py-4"><button type="button" onClick={() => void handleDelete(row)} disabled={deletingId === row.id} aria-label={`Hapus hasil scan ${asset?.nama_barang || "tanpa nama"}`} className="rounded-lg border border-red-200 px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60">{deletingId === row.id ? "Menghapus…" : "Hapus"}</button></td>}</tr>; })}{!loading && rows.length === 0 && <tr><td colSpan={isAdmin ? 7 : 6} className="px-5 py-16 text-center text-slate-500">Belum ada barang yang di-scan untuk filter ini.</td></tr>}</tbody></table></div></div>
   </section>;
 }

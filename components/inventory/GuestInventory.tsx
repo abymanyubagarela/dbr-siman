@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CameraBarcodeScanner } from "@/components/inventory/CameraBarcodeScanner";
 import { setPageLoading } from "@/components/ui/PageLoader";
-import { recordGuestScan, resolveAsset } from "@/lib/inventory";
+import { recordGuestRoomPhoto, recordGuestScan, resolveAsset } from "@/lib/inventory";
 import { supabase, type MasterAset, type MasterRuangan } from "@/lib/supabase";
 
 type RoomOption = Pick<MasterRuangan, "id" | "nama_ruang" | "jenis_ruang">;
@@ -25,6 +25,7 @@ export default function GuestInventory({ title = "Inventarisasi Guest" }: { titl
   const [photoCameraStarting, setPhotoCameraStarting] = useState(false);
   const [photo, setPhoto] = useState<Blob | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [mode, setMode] = useState<"scan" | "photo-only">("scan");
   const [code, setCode] = useState("");
   const [assetLookup, setAssetLookup] = useState<{ code: string; asset: MasterAset | null; error: string } | null>(null);
   const matchedAsset = assetLookup?.code === code ? assetLookup.asset : null;
@@ -47,7 +48,7 @@ export default function GuestInventory({ title = "Inventarisasi Guest" }: { titl
     }, 250);
     return () => { cancelled = true; window.clearTimeout(timer); };
   }, [code]);
-  const [message, setMessage] = useState("Masukkan nama, pilih ruangan, scan QR, lalu ambil foto.");
+  const [message, setMessage] = useState("Pilih nama dan ruangan, lalu gunakan tab Scan QR atau Foto Saja.");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -130,7 +131,7 @@ export default function GuestInventory({ title = "Inventarisasi Guest" }: { titl
       photoStreamRef.current = null;
       videoRef.current.srcObject = null;
       setPhotoCameraReady(false);
-      setMessage("Foto siap. Periksa hasil scan, lalu simpan.");
+      setMessage("Foto siap. Periksa hasilnya, lalu simpan.");
     } catch {
       setMessage("Foto gagal diproses. Silakan ambil ulang.");
     }
@@ -205,6 +206,43 @@ export default function GuestInventory({ title = "Inventarisasi Guest" }: { titl
     }
   };
 
+  const submitPhotoOnly = async () => {
+    if (saving) return;
+    if (!year) {
+      setMessage("Tahun inventaris belum tersedia. Minta admin mengunci tahun aktif, lalu muat ulang halaman.");
+      return;
+    }
+    if (!scannerName.trim() || !roomId || !photo) {
+      setMessage("Lengkapi nama, ruangan, dan foto terlebih dahulu.");
+      return;
+    }
+    setSaving(true);
+    try {
+      if (photo.size > 500 * 1024 || photo.type !== "image/jpeg") {
+        setMessage("Foto harus berupa JPEG maksimal 500 KB. Silakan ambil ulang foto.");
+        return;
+      }
+      const path = `${year.id}/foto-saja/${roomId}/${crypto.randomUUID()}.jpg`;
+      const upload = await supabase.storage.from("inventarisasi-foto").upload(path, photo, { contentType: "image/jpeg", upsert: false });
+      if (upload.error) {
+        setMessage(`Foto gagal diunggah: ${upload.error.message}`);
+        return;
+      }
+      const result = await recordGuestRoomPhoto(year.id, roomId, path, scannerName.trim());
+      if (result.error) {
+        setMessage(`Foto gagal disimpan: ${result.error.message}`);
+        return;
+      }
+      setPhoto(null);
+      setPreview(null);
+      setMessage("Foto saja berhasil disimpan untuk ditinjau admin. Data ini tidak menambah hitungan scan aset.");
+    } catch {
+      setMessage("Foto gagal disimpan. Periksa koneksi lalu coba lagi.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <main className="h-screen overflow-y-auto bg-[#f4f7f5] px-4 py-6 text-slate-900 sm:px-8">
       <div className="mx-auto max-w-2xl">
@@ -257,20 +295,31 @@ export default function GuestInventory({ title = "Inventarisasi Guest" }: { titl
             <p className="mt-1.5 text-xs text-slate-500">Pilih jenis ruang — nama ruang dari master ruangan.</p>
           </div>
 
-          <div>
-            <label className="text-sm font-semibold">Scan QR / Barcode</label>
-            <div className="mt-2"><CameraBarcodeScanner disabled={loading || saving || photoCameraStarting || photoCameraReady} onDetected={setCode} /></div>
-            <label htmlFor="asset-register" className="mt-3 block text-sm font-semibold">Kode Register</label>
-            <input id="asset-register" value={code} disabled={saving} onChange={(event) => setCode(event.target.value)} placeholder="Hasil scan atau masukkan kode register" autoComplete="off" className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 font-mono text-sm" />
-            {code.trim() && <div aria-live="polite" className="mt-2 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-[#165b42]">
-              {assetLookup?.code !== code ? <p>Mencari aset...</p> : assetLookup.error ? <p role="alert">{assetLookup.error}</p> : matchedAsset && <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2">
-                <dt>Nama Barang</dt><dd className="font-semibold">{matchedAsset.nama_barang || "—"}</dd>
-                <dt>Kode Register</dt><dd className="break-all font-mono">{matchedAsset.kode_register || "—"}</dd>
-                <dt>Kode Barang</dt><dd className="font-mono">{matchedAsset.kode_barang || "—"}</dd>
-                <dt>NUP</dt><dd className="font-mono">{matchedAsset.nup ?? "—"}</dd>
-              </dl>}
-            </div>}
+          <div className="grid grid-cols-2 gap-1 rounded-2xl bg-emerald-50 p-1" role="group" aria-label="Metode pencatatan aset">
+            <button type="button" aria-pressed={mode === "scan"} onClick={() => setMode("scan")} className={`rounded-xl px-4 py-3 text-sm font-semibold transition ${mode === "scan" ? "bg-white text-[#165b42] shadow-sm" : "text-slate-600 hover:bg-white/70"}`}>Scan QR</button>
+            <button type="button" aria-pressed={mode === "photo-only"} onClick={() => { setMode("photo-only"); setCode(""); setAssetLookup(null); }} className={`rounded-xl px-4 py-3 text-sm font-semibold transition ${mode === "photo-only" ? "bg-white text-[#165b42] shadow-sm" : "text-slate-600 hover:bg-white/70"}`}>Foto Saja</button>
           </div>
+          {mode === "scan" ? (
+            <div>
+              <label className="text-sm font-semibold">Scan QR / Barcode</label>
+              <div className="mt-2"><CameraBarcodeScanner disabled={loading || saving || photoCameraStarting || photoCameraReady} onDetected={setCode} /></div>
+              <label htmlFor="asset-register" className="mt-3 block text-sm font-semibold">Kode Register</label>
+              <input id="asset-register" value={code} disabled={saving} onChange={(event) => setCode(event.target.value)} placeholder="Hasil scan atau masukkan kode register" autoComplete="off" className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 font-mono text-sm" />
+              {code.trim() && <div aria-live="polite" className="mt-2 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-[#165b42]">
+                {assetLookup?.code !== code ? <p>Mencari aset...</p> : assetLookup.error ? <p role="alert">{assetLookup.error}</p> : matchedAsset && <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2">
+                  <dt>Nama Barang</dt><dd className="font-semibold">{matchedAsset.nama_barang || "—"}</dd>
+                  <dt>Kode Register</dt><dd className="break-all font-mono">{matchedAsset.kode_register || "—"}</dd>
+                  <dt>Kode Barang</dt><dd className="font-mono">{matchedAsset.kode_barang || "—"}</dd>
+                  <dt>NUP</dt><dd className="font-mono">{matchedAsset.nup ?? "—"}</dd>
+                </dl>}
+              </div>}
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950" role="status">
+              <p className="font-semibold">Barcode atau QR tidak terbaca?</p>
+              <p className="mt-1">Ambil foto barang saja. Foto akan disimpan untuk ditinjau admin dan tidak menambah hitungan scan aset.</p>
+            </div>
+          )}
 
           <div>
             <label className="text-sm font-semibold">Foto Barang</label>
@@ -286,7 +335,7 @@ export default function GuestInventory({ title = "Inventarisasi Guest" }: { titl
             <p className="mt-2 text-xs text-slate-500">Foto dikompres maksimal 500 KB sebelum diunggah.</p>
           </div>
 
-          <button type="button" disabled={loading || saving} onClick={() => void submit()} className="w-full rounded-xl bg-[#165b42] px-4 py-3.5 font-bold text-white transition hover:bg-[#0f4632] disabled:cursor-not-allowed">{saving ? "Menyimpan Scan..." : "Simpan Scan"}</button>
+          <button type="button" disabled={loading || saving} onClick={() => void (mode === "scan" ? submit() : submitPhotoOnly())} className="w-full rounded-xl bg-[#165b42] px-4 py-3.5 font-bold text-white transition hover:bg-[#0f4632] disabled:cursor-not-allowed">{saving ? (mode === "scan" ? "Menyimpan Scan..." : "Menyimpan Foto...") : mode === "scan" ? "Simpan Scan" : "Simpan Foto Saja"}</button>
           <p role="status" aria-live="polite" className="text-center text-sm text-slate-500">{message}</p>
         </section>
         <p className="mt-5 text-center text-xs text-slate-400">Tahun Aktif: {year?.tahun ?? "Belum Dikunci"}</p>

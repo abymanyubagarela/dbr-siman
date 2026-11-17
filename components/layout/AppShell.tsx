@@ -8,6 +8,7 @@ const navItems = [
   { href: "/aset", label: "Aset", icon: "▤" },
   { href: "/inventarisasi", label: "Inventarisasi", icon: "◫" },
   { href: "/hasil-scan", label: "Hasil Scan", icon: "≡" },
+  { href: "/rekap-scan", label: "Rekap Scan", icon: "◷" },
   { href: "/hasil-foto", label: "Hasil Foto", icon: "▣" },
   { href: "/user-scan", label: "User Scan", icon: "⌁" },
   { href: "/#ruangan", label: "Ruangan", icon: "⌂" },

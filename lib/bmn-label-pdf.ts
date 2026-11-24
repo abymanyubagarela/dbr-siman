@@ -112,7 +112,7 @@ function addLabel(
   const rightWidth = w - leftWidth;
   const rightX = x + leftWidth;
 
-  const headerHeight = h * 0.44;
+  const headerHeight = h * 0.50;
   const barHeight = h * 0.15;
   const nameHeight = h * 0.12;
   const typeHeight =

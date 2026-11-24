@@ -269,7 +269,7 @@ function addLabel(
   // ==========================================
 
   document.setTextColor(0, 0, 0);
-  document.setFont("Tahoma", "bold");
+  document.setFont("helvetica", "bold");
 
   drawSingleLine(
     "BADAN PEMERIKSA KEUANGAN",
@@ -327,7 +327,7 @@ function addLabel(
   drawSingleLine(
     assetName,
     barBottom + nameHeight / 2,
-    8 * scale,
+    7 * scale,
   );
 
   // ==========================================

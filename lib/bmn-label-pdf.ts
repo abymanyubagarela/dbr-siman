@@ -27,15 +27,14 @@ export type PdfGenerationProgress = {
 };
 
 export function getLabelDimensions(
-  settings: Pick<BMNLabelSettings, "columns" | "rows" | "marginMm" | "gapMm">,
+  settings: Pick<
+    BMNLabelSettings,
+    "columns" | "rows" | "marginMm" | "gapMm"
+  >,
 ): LabelDimensions {
   return {
-    width:
-      (F4_WIDTH_MM - settings.marginMm * 2 - settings.gapMm * (settings.columns - 1)) /
-      settings.columns,
-    height:
-      (F4_HEIGHT_MM - settings.marginMm * 2 - settings.gapMm * (settings.rows - 1)) /
-      settings.rows,
+    width: 90,
+    height: 35,
   };
 }
 

@@ -60,11 +60,6 @@ function hexToRgb(hex: string): [number, number, number] {
   ];
 }
 
-function headerTextColor([red, green, blue]: [number, number, number]): [number, number, number] {
-  const brightness = (red * 299 + green * 587 + blue * 114) / 1000;
-  return brightness > 155 ? [25, 35, 32] : [255, 255, 255];
-}
-
 function fitLines(
   document: jsPDF,
   value: string,
@@ -91,79 +86,98 @@ function addLabel(
   settings: BMNLabelSettings,
   dimensions: LabelDimensions,
   logoDataUrl: string,
+  printYear: number,
 ): void {
   const column = indexOnPage % settings.columns;
   const row = Math.floor(indexOnPage / settings.columns);
   const x = settings.marginMm + column * (dimensions.width + settings.gapMm);
   const y = settings.marginMm + row * (dimensions.height + settings.gapMm);
   const [red, green, blue] = hexToRgb(settings.headerColor);
-  const qrSize = Math.min(18, dimensions.height - 8);
-  const textX = x + 13;
-  const textWidth = dimensions.width - 13 - qrSize - 7;
+  const leftWidth = dimensions.width * 0.28;
+  const rightX = x + leftWidth;
+  const rightWidth = dimensions.width - leftWidth;
+  const inset = Math.max(1, Math.min(2, dimensions.width * 0.02));
+  const qrSize = Math.min(leftWidth - inset * 2, dimensions.height * 0.47, 18);
+  const logoSize = Math.min(leftWidth * 0.55, dimensions.height * 0.34, 10);
+  const rightInset = Math.max(1.2, Math.min(2.2, rightWidth * 0.035));
+  const textX = rightX + rightInset;
+  const textWidth = rightWidth - rightInset * 2;
+  const institutionY = y + dimensions.height * 0.13;
+  const codeY = y + dimensions.height * 0.23;
+  const barY = y + dimensions.height * 0.29;
+  const barHeight = Math.max(3.2, Math.min(4.6, dimensions.height * 0.16));
+  const assetY = y + dimensions.height * 0.68;
+  const typeY = y + dimensions.height * 0.87;
 
-  document.setDrawColor(148, 163, 184);
-  document.setLineWidth(0.22);
-  document.roundedRect(x, y, dimensions.width, dimensions.height, 1.2, 1.2, "S");
-  document.setFillColor(red, green, blue);
-  document.roundedRect(x + 0.15, y + 0.15, dimensions.width - 0.3, 6.3, 1.1, 1.1, "F");
-  document.setFont("helvetica", "bold");
-  document.setFontSize(5.7);
-  document.setTextColor(...headerTextColor([red, green, blue]));
-  document.text(
-    "BADAN PEMERIKSA KEUANGAN REPUBLIK INDONESIA",
-    x + 2.5,
-    y + 4.1,
-    { maxWidth: dimensions.width - 5 },
+  document.setFillColor(255, 255, 255);
+  document.rect(x, y, dimensions.width, dimensions.height, "F");
+  document.setDrawColor(0, 0, 0);
+  document.setLineWidth(0.2);
+  document.rect(x, y, dimensions.width, dimensions.height, "S");
+  document.line(rightX, y, rightX, y + dimensions.height);
+
+  document.addImage(
+    logoDataUrl,
+    "PNG",
+    x + (leftWidth - logoSize) / 2,
+    y + inset,
+    logoSize,
+    logoSize,
   );
-
-  const logoSize = Math.min(9.5, dimensions.height - 12);
-  document.addImage(logoDataUrl, "PNG", x + 2.1, y + 11.1, logoSize, logoSize);
   document.addImage(
     qrDataUrl,
     "PNG",
-    x + dimensions.width - qrSize - 2.4,
-    y + dimensions.height - qrSize - 2.1,
+    x + (leftWidth - qrSize) / 2,
+    y + dimensions.height - qrSize - inset,
     qrSize,
     qrSize,
+  );
+
+  document.setTextColor(0, 0, 0);
+  document.setFont("helvetica", "bold");
+  document.setFontSize(5.2);
+  document.text("BADAN PEMERIKSA KEUANGAN", rightX + rightWidth / 2, institutionY, {
+    align: "center",
+    maxWidth: textWidth,
+  });
+  document.setFontSize(4.2);
+  document.text("004013500350009000KD", rightX + rightWidth / 2, codeY, {
+    align: "center",
+    maxWidth: textWidth,
+  });
+
+  document.setFillColor(red, green, blue);
+  document.rect(textX, barY, textWidth, barHeight, "F");
+  document.setTextColor(0, 0, 0);
+  document.setFontSize(4.8);
+  document.text(
+    `Kode Barang: ${asset.kode_barang || "-"}  NUP: ${asset.nup || "-"}`,
+    rightX + rightWidth / 2,
+    barY + barHeight * 0.68,
+    { align: "center", maxWidth: textWidth - 1 },
   );
 
   const name = asset.nama_barang?.trim() || "Nama barang belum diisi";
-  document.setTextColor(15, 23, 42);
-  document.setFont("helvetica", "bold");
-  document.setFontSize(7.3);
+  document.setFontSize(6.1);
   fitLines(document, name, textWidth, 2).forEach((line, lineIndex) => {
-    document.text(line, textX, y + 10.7 + lineIndex * 3.1);
+    document.text(line, rightX + rightWidth / 2, assetY + lineIndex * 2.6, {
+      align: "center",
+      maxWidth: textWidth,
+    });
+  });
+
+  const merkType = [asset.merk, asset.tipe].filter(Boolean).join(" / ") || "-";
+  document.setFontSize(5.2);
+  document.text(`Merk/Type: ${merkType}`, rightX + rightWidth / 2, typeY, {
+    align: "center",
+    maxWidth: textWidth,
   });
 
   document.setFont("helvetica", "normal");
-  document.setFontSize(5.5);
-  document.setTextColor(51, 65, 85);
-  document.text(
-    fitLines(document, `Kode Barang: ${asset.kode_barang || "-"}`, textWidth, 1),
-    textX,
-    y + 17.2,
-  );
-  document.text(
-    fitLines(document, `NUP: ${asset.nup || "-"}`, textWidth, 1),
-    textX,
-    y + 19.6,
-  );
-  document.text(
-    fitLines(
-      document,
-      `Merk/Tipe: ${[asset.merk, asset.tipe].filter(Boolean).join(" ") || "-"}`,
-      textWidth,
-      1,
-    ),
-    textX,
-    y + 22,
-  );
-  document.setFontSize(5.2);
-  document.text(
-    fitLines(document, `Kode Register: ${asset.kode_register ?? ""}`, textWidth, 2),
-    textX,
-    y + 24.4,
-  );
+  document.setFontSize(3.6);
+  document.text(`Tahun: ${printYear}`, x + dimensions.width - 1.2, y + 2, {
+    align: "right",
+  });
 }
 
 export async function createBMNLabelPdf(
@@ -171,6 +185,7 @@ export async function createBMNLabelPdf(
   settings: BMNLabelSettings,
   onProgress?: (progress: PdfGenerationProgress) => void,
 ): Promise<Blob> {
+  const printYear = new Date().getFullYear();
   const totalLabels = assets.length * settings.copies;
   if (totalLabels === 0) throw new Error("Pilih minimal satu aset untuk dicetak.");
   if (totalLabels > MAX_LABELS_PER_PDF) {
@@ -234,6 +249,7 @@ export async function createBMNLabelPdf(
       settings,
       dimensions,
       logoDataUrl,
+      printYear,
     );
     if ((labelIndex + 1) % 250 === 0) {
       onProgress?.({ phase: "pdf", current: labelIndex + 1, total: totalLabels });

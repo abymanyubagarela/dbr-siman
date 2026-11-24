@@ -274,7 +274,7 @@ function addLabel(
   drawSingleLine(
     "BADAN PEMERIKSA KEUANGAN",
     y + headerHeight * 0.36,
-    12 * scale,
+    11 * scale,
     "center",
   );
 

@@ -90,95 +90,349 @@ function addLabel(
 ): void {
   const column = indexOnPage % settings.columns;
   const row = Math.floor(indexOnPage / settings.columns);
-  const x = settings.marginMm + column * (dimensions.width + settings.gapMm);
-  const y = settings.marginMm + row * (dimensions.height + settings.gapMm);
+
+  const x =
+    settings.marginMm +
+    column * (dimensions.width + settings.gapMm);
+
+  const y =
+    settings.marginMm +
+    row * (dimensions.height + settings.gapMm);
+
+  const w = dimensions.width;
+  const h = dimensions.height;
+
   const [red, green, blue] = hexToRgb(settings.headerColor);
-  const leftWidth = dimensions.width * 0.28;
+
+  // ==========================================
+  // TABLE DIMENSIONS
+  // ==========================================
+
+  const leftWidth = w * 0.285;
+  const rightWidth = w - leftWidth;
   const rightX = x + leftWidth;
-  const rightWidth = dimensions.width - leftWidth;
-  const inset = Math.max(1, Math.min(2, dimensions.width * 0.02));
-  const qrSize = Math.min(leftWidth - inset * 2, dimensions.height * 0.47, 18);
-  const logoSize = Math.min(leftWidth * 0.55, dimensions.height * 0.34, 10);
-  const rightInset = Math.max(1.2, Math.min(2.2, rightWidth * 0.035));
-  const textX = rightX + rightInset;
-  const textWidth = rightWidth - rightInset * 2;
-  const institutionY = y + dimensions.height * 0.13;
-  const codeY = y + dimensions.height * 0.23;
-  const barY = y + dimensions.height * 0.29;
-  const barHeight = Math.max(3.2, Math.min(4.6, dimensions.height * 0.16));
-  const assetY = y + dimensions.height * 0.68;
-  const typeY = y + dimensions.height * 0.87;
+
+  const headerHeight = h * 0.44;
+  const barHeight = h * 0.15;
+  const nameHeight = h * 0.12;
+  const typeHeight =
+    h - headerHeight - barHeight - nameHeight;
+
+  const headerBottom = y + headerHeight;
+  const barBottom = headerBottom + barHeight;
+  const nameBottom = barBottom + nameHeight;
+
+  const padding = 0.7;
+  const textX = rightX + padding;
+  const textWidth = rightWidth - padding * 2;
+
+  const mmPerPt = 25.4 / 72;
+  const scale = Math.min(w / 93.5, h / 28.3, 1.5);
+
+  // Helper: fit single-line text without overflow.
+  function drawSingleLine(
+    value: string,
+    centerY: number,
+    fontSize: number,
+    align: "left" | "center" = "left",
+    maxWidth: number = textWidth,
+  ) {
+    document.setFontSize(fontSize);
+
+    const actualWidth = document.getTextWidth(value);
+
+    if (actualWidth > maxWidth) {
+      document.setFontSize(
+        fontSize * (maxWidth / actualWidth),
+      );
+    }
+
+    document.text(
+      value,
+      align === "center"
+        ? rightX + rightWidth / 2
+        : textX,
+      centerY,
+      {
+        align,
+        baseline: "middle",
+      },
+    );
+  }
+
+  // ==========================================
+  // WHITE BACKGROUND
+  // ==========================================
 
   document.setFillColor(255, 255, 255);
-  document.rect(x, y, dimensions.width, dimensions.height, "F");
+  document.rect(x, y, w, h, "F");
+
+  // ==========================================
+  // COLORED ASSET CODE ROW
+  // Full width without additional margins
+  // ==========================================
+
+  document.setFillColor(red, green, blue);
+
+  document.rect(
+    rightX,
+    headerBottom,
+    rightWidth,
+    barHeight,
+    "F",
+  );
+
+  // ==========================================
+  // TABLE BORDERS
+  // ==========================================
+
   document.setDrawColor(0, 0, 0);
   document.setLineWidth(0.2);
-  document.rect(x, y, dimensions.width, dimensions.height, "S");
-  document.line(rightX, y, rightX, y + dimensions.height);
+
+  // Outer border
+  document.rect(x, y, w, h, "S");
+
+  // Vertical divider: logo/QR and asset information
+  document.line(
+    rightX,
+    y,
+    rightX,
+    y + h,
+  );
+
+  // Horizontal divider: header and lower section
+  document.line(
+    x,
+    headerBottom,
+    x + w,
+    headerBottom,
+  );
+
+  // Divider below colored bar
+  document.line(
+    rightX,
+    barBottom,
+    x + w,
+    barBottom,
+  );
+
+  // Divider below asset name
+  document.line(
+    rightX,
+    nameBottom,
+    x + w,
+    nameBottom,
+  );
+
+  // ==========================================
+  // BPK LOGO
+  // Larger and centered in upper-left cell
+  // ==========================================
+
+  const logoProperties =
+    document.getImageProperties(logoDataUrl);
+
+  const logoRatio =
+    logoProperties.width / logoProperties.height;
+
+  const maxLogoWidth = leftWidth * 0.85;
+  const maxLogoHeight = headerHeight * 0.90;
+
+  const logoHeight = Math.min(
+    maxLogoHeight,
+    maxLogoWidth / logoRatio,
+  );
+
+  const logoWidth = logoHeight * logoRatio;
 
   document.addImage(
     logoDataUrl,
     "PNG",
-    x + (leftWidth - logoSize) / 2,
-    y + inset,
-    logoSize,
-    logoSize,
+    x + (leftWidth - logoWidth) / 2,
+    y + (headerHeight - logoHeight) / 2,
+    logoWidth,
+    logoHeight,
   );
+
+  // ==========================================
+  // QR CODE
+  // Centered in lower-left cell
+  // ==========================================
+
+  const qrCellHeight = h - headerHeight;
+
+  const qrSize = Math.min(
+    leftWidth - 1.4,
+    qrCellHeight - 1.4,
+  );
+
   document.addImage(
     qrDataUrl,
     "PNG",
     x + (leftWidth - qrSize) / 2,
-    y + dimensions.height - qrSize - inset,
+    headerBottom + (qrCellHeight - qrSize) / 2,
     qrSize,
     qrSize,
   );
+
+  // ==========================================
+  // INSTITUTION HEADER
+  // ==========================================
 
   document.setTextColor(0, 0, 0);
   document.setFont("helvetica", "bold");
-  document.setFontSize(5.2);
-  document.text("BADAN PEMERIKSA KEUANGAN", rightX + rightWidth / 2, institutionY, {
-    align: "center",
-    maxWidth: textWidth,
-  });
-  document.setFontSize(4.2);
-  document.text("004013500350009000KD", rightX + rightWidth / 2, codeY, {
-    align: "center",
-    maxWidth: textWidth,
-  });
 
-  document.setFillColor(red, green, blue);
-  document.rect(textX, barY, textWidth, barHeight, "F");
-  document.setTextColor(0, 0, 0);
-  document.setFontSize(4.8);
-  document.text(
-    `Kode Barang: ${asset.kode_barang || "-"}  NUP: ${asset.nup || "-"}`,
-    rightX + rightWidth / 2,
-    barY + barHeight * 0.68,
-    { align: "center", maxWidth: textWidth - 1 },
+  drawSingleLine(
+    "BADAN PEMERIKSA KEUANGAN",
+    y + headerHeight * 0.36,
+    7.5 * scale,
+    "center",
   );
 
-  const name = asset.nama_barang?.trim() || "Nama barang belum diisi";
-  document.setFontSize(6.1);
-  fitLines(document, name, textWidth, 2).forEach((line, lineIndex) => {
-    document.text(line, rightX + rightWidth / 2, assetY + lineIndex * 2.6, {
-      align: "center",
-      maxWidth: textWidth,
-    });
+  drawSingleLine(
+    "004013500350009000KD",
+    y + headerHeight * 0.65,
+    7.2 * scale,
+    "center",
+  );
+
+  // ==========================================
+  // KODE BARANG AND NUP
+  // ==========================================
+
+  const luminance = (
+    0.2126 * red +
+    0.7152 * green +
+    0.0722 * blue
+  );
+
+  // Automatically maintain readable contrast.
+  if (luminance > 190) {
+    document.setTextColor(0, 0, 0);
+  } else {
+    document.setTextColor(255, 255, 255);
+  }
+
+  document.setFont("helvetica", "bold");
+
+  const assetCode =
+    `${asset.kode_barang ?? "-"} NUP:${asset.nup ?? "-"}`;
+
+  drawSingleLine(
+    assetCode,
+    headerBottom + barHeight / 2,
+    6.4 * scale,
+  );
+
+  // ==========================================
+  // NAMA BARANG
+  // Left aligned
+  // ==========================================
+
+  document.setTextColor(0, 0, 0);
+  document.setFont("helvetica", "bold");
+
+  const assetName =
+    asset.nama_barang?.trim() || "-";
+
+  drawSingleLine(
+    assetName,
+    barBottom + nameHeight / 2,
+    6.2 * scale,
+  );
+
+  // ==========================================
+  // MERK / TYPE
+  // Left aligned, maximum two lines
+  // ==========================================
+
+  const merkType =
+    [asset.merk, asset.tipe]
+      .map((value) => value?.trim())
+      .filter(Boolean)
+      .join(" / ") || "-";
+
+  const yearHeight = Math.min(2.5 * scale, typeHeight * 0.30);
+
+  const availableTypeHeight =
+    typeHeight - yearHeight - padding * 2;
+
+  let typeFontSize = 6.0 * scale;
+
+  document.setFont("helvetica", "bold");
+  document.setFontSize(typeFontSize);
+
+  let typeLines = document.splitTextToSize(
+    merkType,
+    textWidth,
+  ) as string[];
+
+  // Reduce font size for long brand/type descriptions.
+  while (
+    (
+      typeLines.length > 2 ||
+      typeLines.length *
+        typeFontSize *
+        mmPerPt *
+        1.10 > availableTypeHeight
+    ) &&
+    typeFontSize > 3.8 * scale
+  ) {
+    typeFontSize -= 0.2 * scale;
+
+    document.setFontSize(typeFontSize);
+
+    typeLines = document.splitTextToSize(
+      merkType,
+      textWidth,
+    ) as string[];
+  }
+
+  // Prevent text from exceeding the label boundary.
+  typeLines = fitLines(
+    document,
+    merkType,
+    textWidth,
+    2,
+  );
+
+  const lineHeight = Math.min(
+    typeFontSize * mmPerPt * 1.10,
+    availableTypeHeight / Math.max(1, typeLines.length),
+  );
+
+  typeLines.forEach((line, index) => {
+    document.text(
+      line,
+      textX,
+      nameBottom + padding + lineHeight * (index + 0.5),
+      {
+        align: "left",
+        baseline: "middle",
+      },
+    );
   });
 
-  const merkType = [asset.merk, asset.tipe].filter(Boolean).join(" / ") || "-";
-  document.setFontSize(5.2);
-  document.text(`Merk/Type: ${merkType}`, rightX + rightWidth / 2, typeY, {
-    align: "center",
-    maxWidth: textWidth,
-  });
+  // ==========================================
+  // PRINT YEAR
+  // Small text in bottom-right corner
+  // ==========================================
 
+  document.setTextColor(0, 0, 0);
   document.setFont("helvetica", "normal");
-  document.setFontSize(3.6);
-  document.text(`Tahun: ${printYear}`, x + dimensions.width - 1.2, y + 2, {
-    align: "right",
-  });
+  document.setFontSize(4.0 * scale);
+
+  document.text(
+    `Tahun: ${printYear}`,
+    x + w - padding,
+    y + h - padding,
+    {
+      align: "right",
+      baseline: "bottom",
+    },
+  );
 }
+
 
 export async function createBMNLabelPdf(
   assets: MasterAset[],

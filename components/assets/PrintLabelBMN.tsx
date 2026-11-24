@@ -18,13 +18,23 @@ import { supabase, type MasterAset } from "@/lib/supabase";
 const ASSET_SELECT =
   "id,jenis_bmn,kode_barang,nup,nama_barang,merk,tipe,kondisi,status,kode_register,created_at,updated_at";
 const FETCH_BATCH_SIZE = 500;
+const LABEL_COLOR_CATEGORIES = [
+  { color: "#2563EB", name: "Teknologi Informasi dan Komunikasi" },
+  { color: "#F97316", name: "Furnitur dan Perlengkapan Kantor" },
+  { color: "#16A34A", name: "Peralatan Rumah Tangga" },
+  { color: "#DC2626", name: "Keamanan dan Keselamatan" },
+  { color: "#9333EA", name: "Mesin dan Utilitas" },
+  { color: "#EAB308", name: "Alat Ukur, Kesehatan dan Olahraga" },
+  { color: "#0891B2", name: "Perlengkapan Institusi dan Multimedia" },
+  { color: "#475569", name: "Bangunan dan Infrastruktur" },
+] as const;
 const DEFAULT_SETTINGS: BMNLabelSettings = {
   columns: 2,
   rows: 10,
   marginMm: 10,
   gapMm: 3,
   copies: 1,
-  headerColor: "#e87924",
+  headerColor: "#F97316",
 };
 
 async function loadMasterAset(): Promise<MasterAset[]> {
@@ -376,20 +386,48 @@ export default function PrintLabelBMN() {
               <span className="rounded-lg bg-slate-100 px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-600">F4 · 210 × 330 mm</span>
             </div>
 
-            <label className="mt-5 block text-sm font-semibold text-slate-700">
-              Warna header label
-              <div className="mt-2 flex items-center gap-3 rounded-lg border border-slate-200 p-2">
-                <input
-                  type="color"
-                  value={settings.headerColor}
-                  onChange={(event) => updateSettings("headerColor", event.target.value)}
-                  aria-label="Warna header oranye untuk semua label terpilih"
-                  className="h-10 w-14 cursor-pointer rounded-md border-0 bg-transparent p-0.5"
-                />
-                <span className="font-mono text-sm font-medium uppercase text-slate-600">{settings.headerColor}</span>
-                <span className="ml-auto text-xs text-slate-400">Berlaku untuk semua</span>
+            <fieldset className="mt-5">
+              <legend className="text-sm font-semibold text-slate-700">Kategori warna header</legend>
+              <div className="mt-2 grid gap-2">
+                {LABEL_COLOR_CATEGORIES.map((category) => {
+                  const isSelected = settings.headerColor.toUpperCase() === category.color;
+                  return (
+                    <button
+                      key={category.color}
+                      type="button"
+                      aria-pressed={isSelected}
+                      aria-label={`${category.name}, ${category.color}${isSelected ? ", dipilih" : ""}`}
+                      onClick={() => updateSettings("headerColor", category.color)}
+                      className={`flex min-h-10 items-center gap-2.5 rounded-lg border px-2.5 py-2 text-left text-xs transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 ${
+                        isSelected
+                          ? "border-slate-900 bg-slate-50 font-semibold text-slate-900"
+                          : "border-slate-200 text-slate-700 hover:bg-slate-50"
+                      }`}
+                    >
+                      <span
+                        aria-hidden="true"
+                        className="relative size-5 shrink-0 rounded-sm border border-black/15"
+                        style={{ backgroundColor: category.color }}
+                      >
+                        {isSelected && (
+                          <svg
+                            viewBox="0 0 16 16"
+                            className="absolute inset-0 size-full p-0.5 text-white drop-shadow"
+                            fill="none"
+                            aria-hidden="true"
+                          >
+                            <path d="m3 8 3.2 3.2L13 4.8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        )}
+                      </span>
+                      <span className="min-w-0 flex-1">{category.name}</span>
+                      <span className="font-mono text-[10px] uppercase text-slate-500">{category.color}</span>
+                    </button>
+                  );
+                })}
               </div>
-            </label>
+              <p className="mt-2 text-xs text-slate-500">Warna terpilih berlaku untuk semua label yang dibuat.</p>
+            </fieldset>
 
             <div className="mt-4 grid grid-cols-2 gap-3">
               <NumberField label="Kolom" value={settings.columns} min={1} max={10} onChange={(value) => updateSettings("columns", value)} />

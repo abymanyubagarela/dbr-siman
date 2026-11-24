@@ -34,7 +34,7 @@ export function getLabelDimensions(
 ): LabelDimensions {
   return {
     width: 90,
-    height: 35,
+    height: 32.5,
   };
 }
 

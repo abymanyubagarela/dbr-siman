@@ -232,7 +232,7 @@ function addLabel(
   const logoProperties = document.getImageProperties(logoDataUrl);
   const logoRatio = logoProperties.width / logoProperties.height;
 
-  const logoHeight = headerHeight * 1.25;
+  const logoHeight = headerHeight * 1.5;
   const logoWidth = logoHeight * logoRatio;
 
   document.addImage(

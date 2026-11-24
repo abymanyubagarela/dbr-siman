@@ -252,8 +252,8 @@ function addLabel(
   const qrCellHeight = h - headerHeight;
 
   const qrSize = Math.min(
-    leftWidth - 1.4,
-    qrCellHeight - 1.4,
+    leftWidth - 1,
+    qrCellHeight - 1,
   );
 
   document.addImage(

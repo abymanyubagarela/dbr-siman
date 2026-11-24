@@ -275,14 +275,14 @@ function addLabel(
   drawSingleLine(
     "BADAN PEMERIKSA KEUANGAN",
     y + headerHeight * 0.36,
-    7.5 * scale,
+    9 * scale,
     "center",
   );
 
   drawSingleLine(
     "004013500350009000KD",
     y + headerHeight * 0.65,
-    7.2 * scale,
+    8 * scale,
     "center",
   );
 
@@ -323,7 +323,7 @@ function addLabel(
   document.setFont("helvetica", "bold");
 
   const assetName =
-    asset.nama_barang?.trim() || "-";
+    (asset.nama_barang?.trim() || "-").toUpperCase();
 
   drawSingleLine(
     assetName,

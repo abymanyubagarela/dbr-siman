@@ -3,8 +3,8 @@ import "./globals.css";
 import { ToastProvider } from "@/components/ui/feedback";
 
 export const metadata: Metadata = {
-  title: "DBR | Manajemen Ruangan",
-  description: "Kelola data ruangan dan inventaris aset secara terpusat.",
+  title: "DBR | Manajemen Aset BMN",
+  description: "Kelola inventaris, pencarian aset, dan pencetakan label BMN.",
 };
 
 export default function RootLayout({

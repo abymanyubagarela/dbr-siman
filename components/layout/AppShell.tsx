@@ -6,6 +6,7 @@ import { PageLoader, setPageLoading } from "@/components/ui/PageLoader";
 const navItems = [
   { href: "/", label: "Dashboard", icon: "▦" },
   { href: "/aset", label: "Aset", icon: "▤" },
+  { href: "/cetak-label-bmn", label: "Cetak Label BMN", icon: "▧" },
   { href: "/inventarisasi", label: "Inventarisasi", icon: "◫" },
   { href: "/hasil-scan", label: "Hasil Scan", icon: "≡" },
   { href: "/rekap-scan", label: "Rekap Scan", icon: "◷" },

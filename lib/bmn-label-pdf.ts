@@ -274,14 +274,14 @@ function addLabel(
   drawSingleLine(
     "BADAN PEMERIKSA KEUANGAN",
     y + headerHeight * 0.36,
-    9 * scale,
+    12 * scale,
     "center",
   );
 
   drawSingleLine(
     "004013500350009000KD",
     y + headerHeight * 0.65,
-    8 * scale,
+    10 * scale,
     "center",
   );
 
@@ -310,7 +310,7 @@ function addLabel(
   drawSingleLine(
     assetCode,
     headerBottom + barHeight / 2,
-    10.0 * scale,
+    9.0 * scale,
   );
 
   // ==========================================

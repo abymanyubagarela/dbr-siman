@@ -229,20 +229,10 @@ function addLabel(
   // Larger and centered in upper-left cell
   // ==========================================
 
-  const logoProperties =
-    document.getImageProperties(logoDataUrl);
+  const logoProperties = document.getImageProperties(logoDataUrl);
+  const logoRatio = logoProperties.width / logoProperties.height;
 
-  const logoRatio =
-    logoProperties.width / logoProperties.height;
-
-  const maxLogoWidth = leftWidth * 0.95;
-  const maxLogoHeight = headerHeight * 0.98;
-
-  const logoHeight = Math.min(
-    maxLogoHeight,
-    maxLogoWidth / logoRatio,
-  );
-
+  const logoHeight = headerHeight * 1.25;
   const logoWidth = logoHeight * logoRatio;
 
   document.addImage(
@@ -251,7 +241,7 @@ function addLabel(
     x + (leftWidth - logoWidth) / 2,
     y + (headerHeight - logoHeight) / 2,
     logoWidth,
-    logoHeight,
+    logoHeight
   );
 
   // ==========================================

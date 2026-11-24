@@ -463,7 +463,7 @@ export async function createBMNLabelPdf(
         code,
         await QRCode.toDataURL(code, {
           errorCorrectionLevel: "M",
-          margin: 3,
+          margin: 4,
           width: 384,
         }),
       ] as const),

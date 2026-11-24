@@ -235,8 +235,8 @@ function addLabel(
   const logoRatio =
     logoProperties.width / logoProperties.height;
 
-  const maxLogoWidth = leftWidth * 0.85;
-  const maxLogoHeight = headerHeight * 0.90;
+  const maxLogoWidth = leftWidth * 0.90;
+  const maxLogoHeight = headerHeight * 0.98;
 
   const logoHeight = Math.min(
     maxLogoHeight,

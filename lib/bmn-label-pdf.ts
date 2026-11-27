@@ -27,15 +27,14 @@ export type PdfGenerationProgress = {
 };
 
 export function getLabelDimensions(
-  settings: Pick<BMNLabelSettings, "columns" | "rows" | "marginMm" | "gapMm">,
+  settings: Pick<
+    BMNLabelSettings,
+    "columns" | "rows" | "marginMm" | "gapMm"
+  >,
 ): LabelDimensions {
   return {
-    width:
-      (F4_WIDTH_MM - settings.marginMm * 2 - settings.gapMm * (settings.columns - 1)) /
-      settings.columns,
-    height:
-      (F4_HEIGHT_MM - settings.marginMm * 2 - settings.gapMm * (settings.rows - 1)) /
-      settings.rows,
+    width: 90,
+    height: 32.5,
   };
 }
 
@@ -275,14 +274,14 @@ function addLabel(
   drawSingleLine(
     "BADAN PEMERIKSA KEUANGAN",
     y + headerHeight * 0.36,
-    9 * scale,
+    11 * scale,
     "center",
   );
 
   drawSingleLine(
     "004013500350009000KD",
     y + headerHeight * 0.65,
-    8 * scale,
+    10 * scale,
     "center",
   );
 
@@ -311,7 +310,7 @@ function addLabel(
   drawSingleLine(
     assetCode,
     headerBottom + barHeight / 2,
-    6.4 * scale,
+    9.0 * scale,
   );
 
   // ==========================================
@@ -328,7 +327,7 @@ function addLabel(
   drawSingleLine(
     assetName,
     barBottom + nameHeight / 2,
-    6.2 * scale,
+    7 * scale,
   );
 
   // ==========================================

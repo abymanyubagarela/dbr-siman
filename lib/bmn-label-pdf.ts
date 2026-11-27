@@ -310,7 +310,7 @@ function addLabel(
   drawSingleLine(
     assetCode,
     headerBottom + barHeight / 2,
-    9.0 * scale,
+    8.0 * scale,
   );
 
   // ==========================================

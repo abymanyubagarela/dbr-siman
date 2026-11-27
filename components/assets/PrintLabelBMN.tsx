@@ -27,7 +27,7 @@ const LABEL_COLOR_CATEGORIES = [
   { color: "#EAB308", name: "Alat Ukur, Kesehatan dan Olahraga" },
   { color: "#0891B2", name: "Perlengkapan Institusi dan Multimedia" },
   { color: "#475569", name: "Bangunan dan Infrastruktur" },
-  { color: "#598FBF", name: "Monografi" }
+  { color: "#598FBF", name: "Monografi" },
 ] as const;
 const DEFAULT_SETTINGS: BMNLabelSettings = {
   columns: 2,
